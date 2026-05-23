@@ -1,0 +1,14 @@
+{
+    "Auth": true,
+    "Blog": true,
+    "Mail": true,
+    "User": true,
+    "Nutri": true,
+    "Patient": true,
+    "Trainer": true,
+    "Professionals": true,
+    "Professional": true,
+    "Client": true,
+    "MealPlan": true,
+    "Chat": true
+}

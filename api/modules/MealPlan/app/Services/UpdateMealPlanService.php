@@ -1,0 +1,81 @@
+<?php
+
+namespace Modules\MealPlan\Services;
+
+use Illuminate\Support\Arr;
+use Illuminate\Support\Facades\DB;
+use Modules\Client\Models\Client;
+use Modules\MealPlan\Models\MealPlan;
+use Modules\User\Exceptions\UserException;
+use Modules\User\Models\User;
+
+class UpdateMealPlanService
+{
+    public function handle(User $user, MealPlan $mealPlan, array $data): MealPlan
+    {
+        $this->ensureUserCanUpdateMealPlan($user, $mealPlan);
+
+        return DB::transaction(function () use ($user, $mealPlan, $data) {
+            $client = Client::where('uuid', $data['client_uuid'])->firstOrFail();
+
+            $this->ensureClientBelongsToProfessional($client, $user);
+
+            $mealPlan->update([
+                'client_id' => $client->id,
+                ...Arr::only($data, [
+                    'title',
+                    'start_date',
+                    'end_date',
+                    'status',
+                    'client_goal',
+                    'plan_type',
+                    'general_notes',
+                ]),
+            ]);
+
+            $mealPlan->meals()->delete();
+
+            foreach ($data['meals'] as $mealData) {
+                $meal = $mealPlan->meals()->create(Arr::only($mealData, [
+                    'name',
+                    'time',
+                    'instructions',
+                ]));
+
+                foreach ($mealData['foods'] as $foodData) {
+                    $meal->foods()->create(Arr::only($foodData, [
+                        'name',
+                        'amount',
+                        'unit',
+                    ]));
+                }
+            }
+
+            return $mealPlan->load('client', 'professional.user', 'meals.foods');
+        });
+    }
+
+    private function ensureUserCanUpdateMealPlan(User $user, MealPlan $mealPlan): void
+    {
+        if (
+            $user->role !== 'professional'
+            || ! $user->professional
+            || $user->professional->speciality !== 'nutritionist'
+            || $mealPlan->professional_id !== $user->professional->id
+        ) {
+            throw new UserException('Only the nutritionist who created this meal plan can update it');
+        }
+    }
+
+    private function ensureClientBelongsToProfessional(Client $client, User $user): void
+    {
+        $belongsToProfessional = $client->professionals()
+            ->where('professionals.id', $user->professional->id)
+            ->wherePivot('status', 'active')
+            ->exists();
+
+        if (! $belongsToProfessional) {
+            throw new UserException('Client does not belong to this nutritionist');
+        }
+    }
+}

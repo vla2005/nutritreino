@@ -1,0 +1,11 @@
+{
+    "name": "Professional",
+    "alias": "professional",
+    "description": "",
+    "keywords": [],
+    "priority": 0,
+    "providers": [
+        "Modules\\Professional\\Providers\\ProfessionalServiceProvider"
+    ],
+    "files": []
+}

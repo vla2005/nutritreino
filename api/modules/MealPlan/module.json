@@ -1,0 +1,11 @@
+{
+    "name": "MealPlan",
+    "alias": "mealplan",
+    "description": "",
+    "keywords": [],
+    "priority": 0,
+    "providers": [
+        "Modules\\MealPlan\\Providers\\MealPlanServiceProvider"
+    ],
+    "files": []
+}
