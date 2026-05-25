@@ -1,4 +1,5 @@
 import { useEffect, useMemo, useState } from 'react'
+import { useNavigate } from 'react-router-dom'
 import { useAuth } from '../../composables/useAuth.js'
 import { useToast } from '../../composables/useToast.jsx'
 import { updateMyProfile } from '../../services/profile.js'
@@ -6,7 +7,8 @@ import { normalizeAvatarUrl } from '../../utils/avatar.js'
 
 export default function ProfileSettings() {
   const toast = useToast()
-  const { user, fetchMe } = useAuth()
+  const navigate = useNavigate()
+  const { user, fetchMe, logout } = useAuth()
   const [saving, setSaving] = useState(false)
   const [avatarPreview, setAvatarPreview] = useState('')
   const [form, setForm] = useState(() => profileToForm(user))
@@ -50,6 +52,11 @@ export default function ProfileSettings() {
     } finally {
       setSaving(false)
     }
+  }
+
+  async function handleLogout() {
+    await logout()
+    navigate('/login')
   }
 
   return (
@@ -128,6 +135,7 @@ export default function ProfileSettings() {
         ) : null}
 
         <footer className="settings-actions">
+          <button type="button" className="settings-logout-button" onClick={handleLogout}>Sair da conta</button>
           <button type="submit" disabled={saving}>{saving ? 'Salvando...' : 'Salvar alteracoes'}</button>
         </footer>
       </form>

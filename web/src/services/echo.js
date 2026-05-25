@@ -1,6 +1,7 @@
 import Echo from 'laravel-echo'
 import Pusher from 'pusher-js'
 import { API_URL } from '../config/api.js'
+import { PUSHER_APP_CLUSTER, PUSHER_APP_KEY } from '../config/pusher.js'
 
 const TOKEN_KEY = 'auth_token'
 
@@ -13,16 +14,11 @@ export function getEcho() {
 
   window.Pusher = Pusher
 
-  const scheme = import.meta.env.VITE_REVERB_SCHEME || 'http'
-  const port = Number(import.meta.env.VITE_REVERB_PORT || 8080)
-
   echo = new Echo({
-    broadcaster: 'reverb',
-    key: import.meta.env.VITE_REVERB_APP_KEY || 'local-chat-key',
-    wsHost: import.meta.env.VITE_REVERB_HOST || '127.0.0.1',
-    wsPort: port,
-    wssPort: port,
-    forceTLS: scheme === 'https',
+    broadcaster: 'pusher',
+    key: PUSHER_APP_KEY,
+    cluster: PUSHER_APP_CLUSTER,
+    forceTLS: true,
     enabledTransports: ['ws', 'wss'],
     authEndpoint: `${API_URL}/broadcasting/auth`,
     auth: {

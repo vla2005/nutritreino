@@ -3,6 +3,7 @@ import { useLocation } from 'react-router-dom'
 import { useAuth } from '../../composables/useAuth.js'
 import { useToast } from '../../composables/useToast.jsx'
 import { createProgressRecord, getProgress, getProgressAccess, grantProgressAccess, revokeProgressAccess, saveProgressFeedback } from '../../services/progress.js'
+import { normalizeAvatarUrl } from '../../utils/avatar.js'
 
 const measurementItems = [
   { key: 'waist', label: 'Cintura', icon: '📏' },
@@ -87,8 +88,8 @@ export default function ClientProgress() {
       <>
 
       <section className="progress-summary-grid">
-        <SummaryCard tone="green" icon={<ScaleIcon />} label="Peso atual" value={`${formatNumber(progress?.summary?.current_weight)} kg`} detail="Atualizado hoje" />
-        <SummaryCard tone="green" icon={<TrendIcon />} label="Variação no mês" value={`${signedNumber(progress?.summary?.month_variation)} kg`} detail={`${signedNumber(progress?.summary?.month_variation_percent)}% desde 18/05`} />
+        <SummaryCard tone="green" icon={<ScaleIcon />} label="Peso atual" value={`${formatNumber(progress?.summary?.current_weight)} kg`} detail={currentWeightDetail(progress?.summary)} />
+        <SummaryCard tone="green" icon={<TrendIcon />} label="Variação no mês" value={`${signedNumber(progress?.summary?.month_variation)} kg`} detail={variationDetail(progress?.summary)} />
         <SummaryCard tone="orange" icon={<TargetIcon />} label="Meta" value={progress?.summary?.target_weight ? `${formatNumber(progress.summary.target_weight)} kg` : '-'} detail={progress?.summary?.target_remaining ? `Faltam ${formatNumber(progress.summary.target_remaining)} kg` : 'Defina no próximo registro'} />
         <SummaryCard tone="purple" icon={<CalendarIcon />} label="Último check-in" value={progress?.summary?.last_check_in_date ? relativeDate(progress.summary.last_check_in_date) : '-'} detail={formatDate(progress?.summary?.last_check_in_date)} />
       </section>
@@ -285,8 +286,10 @@ function ProgressAccessDialog({ onClose }) {
 }
 
 function AvatarImage({ person }) {
-  return person?.avatar
-    ? <img className="progress-access-avatar" src={person.avatar} alt="" />
+  const avatarUrl = normalizeAvatarUrl(person?.avatar)
+
+  return avatarUrl
+    ? <img className="progress-access-avatar" src={avatarUrl} alt="" />
     : <span className="progress-access-avatar">{initials(person?.name || 'PR')}</span>
 }
 
@@ -304,12 +307,18 @@ function SummaryCard({ tone, icon, label, value, detail }) {
 }
 
 function WeightChart({ points }) {
-  const values = points.length ? points : mockHistory()
-  const weights = values.map((item) => Number(item.weight || 0))
-  const min = Math.min(...weights, 74)
-  const max = Math.max(...weights, 82)
+  const values = (points || []).filter((item) => Number.isFinite(Number(item.weight)))
+  if (!values.length) {
+    return <div className="progress-chart is-empty"><span>Nenhum peso registrado.</span></div>
+  }
+
+  const weights = values.map((item) => Number(item.weight))
+  const padding = values.length === 1 ? 2 : 1
+  const min = Math.min(...weights) - padding
+  const max = Math.max(...weights) + padding
   const width = 720
   const height = 220
+  const gridLines = chartGridLines(min, max)
   const plot = values.map((item, index) => {
     const x = 38 + (index / Math.max(1, values.length - 1)) * (width - 76)
     const y = 28 + ((max - Number(item.weight)) / Math.max(1, max - min)) * (height - 58)
@@ -317,17 +326,20 @@ function WeightChart({ points }) {
   })
   const d = plot.map((point, index) => `${index === 0 ? 'M' : 'L'} ${point.x} ${point.y}`).join(' ')
   const last = plot.at(-1)
+  const tooltipLeft = last ? Math.min(88, Math.max(12, (last.x / width) * 100)) : 0
+  const tooltipTop = last ? Math.min(72, Math.max(12, (last.y / height) * 100)) : 0
+  const dateLabels = chartDateLabels(values)
 
   return (
     <div className="progress-chart">
       <svg viewBox={`0 0 ${width} ${height}`} aria-hidden="true">
-        {[82, 80, 78, 76, 74].map((line, index) => <g key={line}><line x1="30" y1={32 + index * 36} x2="690" y2={32 + index * 36} /><text x="2" y={37 + index * 36}>{line}</text></g>)}
-        <path d={d} />
+        {gridLines.map((line, index) => <g key={line}><line x1="30" y1={32 + index * 36} x2="690" y2={32 + index * 36} /><text x="2" y={37 + index * 36}>{formatNumber(line)}</text></g>)}
+        {plot.length > 1 ? <path d={d} /> : null}
         {plot.map((point) => <circle key={`${point.x}-${point.y}`} cx={point.x} cy={point.y} r="4" />)}
         {last ? <circle className="is-last" cx={last.x} cy={last.y} r="7" /> : null}
       </svg>
-      {last ? <div className="progress-chart-tooltip" style={{ left: `${(last.x / width) * 100}%`, top: `${(last.y / height) * 100}%` }}>{formatDate(last.item.date)}<strong>{formatNumber(last.item.weight)} kg</strong></div> : null}
-      <div className="progress-chart-dates"><span>18/05</span><span>25/05</span><span>01/06</span><span>08/06</span><span>15/06</span><span>18/06</span></div>
+      {last ? <div className="progress-chart-tooltip" style={{ left: `${tooltipLeft}%`, top: `${tooltipTop}%` }}>{last.item.source === 'profile' ? 'Peso inicial' : formatDate(last.item.date)}<strong>{formatNumber(last.item.weight)} kg</strong></div> : null}
+      <div className="progress-chart-dates">{dateLabels.map((label, index) => <span key={`${label}-${index}`}>{label}</span>)}</div>
     </div>
   )
 }
@@ -818,14 +830,40 @@ function FeedbackList({ feedbacks }) {
   )
 }
 
-function mockHistory() {
-  return [80.6, 80.1, 79.8, 79.2, 79.3, 78.7, 78.1, 78.3, 78.4, 77.4, 77.8, 77.6, 77.2, 77.4, 77.7, 76.9].map((weight, index) => ({ date: `2026-06-${String(index + 1).padStart(2, '0')}`, weight }))
-}
-
 function averageCheck(check = {}) {
   const values = Object.values(check).map(Number).filter(Boolean)
   if (!values.length) return 0
   return Math.round(values.reduce((sum, value) => sum + value, 0) / values.length)
+}
+
+function currentWeightDetail(summary = {}) {
+  if (summary?.current_weight_source === 'profile') return 'Peso cadastrado'
+  if (summary?.current_weight_date) return `Atualizado em ${formatDate(summary.current_weight_date)}`
+  return 'Sem registro de peso'
+}
+
+function variationDetail(summary = {}) {
+  if (summary?.month_variation === null || summary?.month_variation === undefined) return 'Sem registros suficientes'
+  return `${signedNumber(summary.month_variation_percent)}% no período`
+}
+
+function chartGridLines(min, max) {
+  const step = Math.max(1, Math.ceil((max - min) / 4))
+  const top = Math.ceil(max)
+
+  return Array.from({ length: 5 }, (_, index) => top - index * step)
+}
+
+function chartDateLabels(values) {
+  if (values.length === 1) {
+    return [values[0].source === 'profile' ? 'Inicial' : formatDate(values[0].date)]
+  }
+
+  const sampleIndexes = [0, 0.2, 0.4, 0.6, 0.8, 1]
+    .map((ratio) => Math.round(ratio * (values.length - 1)))
+    .filter((index, position, list) => list.indexOf(index) === position)
+
+  return sampleIndexes.map((index) => formatDate(values[index]?.date))
 }
 
 function formatNumber(value) {

@@ -61,6 +61,7 @@ function getMobileItems(role, icons, unreadMessages = 0) {
       { to: '/patients', label: 'Pacientes', icon: icons.patients },
       { to: '/dashboard/meal-plans', label: 'Planos', icon: icons.plans },
       { to: '/dashboard/messages', label: 'Mensagens', icon: icons.messages, badge },
+      { to: '/dashboard/settings', label: 'Perfil', icon: icons.settings },
     ]
   }
 
@@ -70,6 +71,7 @@ function getMobileItems(role, icons, unreadMessages = 0) {
       { to: '/patients', label: 'Alunos', icon: icons.patients },
       { to: '/dashboard/workouts', label: 'Treinos', icon: icons.workouts },
       { to: '/dashboard/messages', label: 'Mensagens', icon: icons.messages, badge },
+      { to: '/dashboard/settings', label: 'Perfil', icon: icons.settings },
     ]
   }
 
@@ -78,6 +80,7 @@ function getMobileItems(role, icons, unreadMessages = 0) {
     { to: '/dashboard/meal-plans', label: 'Dietas', icon: icons.diet },
     { to: '/dashboard/workouts', label: 'Treinos', icon: icons.workouts },
     { to: '/dashboard/messages', label: 'Mensagens', icon: icons.messages, badge },
+    { to: '/dashboard/settings', label: 'Perfil', icon: icons.settings },
   ]
 }
 

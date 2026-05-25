@@ -31,11 +31,13 @@ class MeController extends Controller
     {
         $user = $request->user();
         $data = $request->validated();
+        $oldAvatar = null;
 
-        $user = DB::transaction(function () use ($user, $data, $request) {
+        $user = DB::transaction(function () use ($user, $data, $request, &$oldAvatar) {
             if ($request->hasFile('avatar_file')) {
+                $oldAvatar = $user->avatar;
                 $path = $request->file('avatar_file')->store('avatars', 'public');
-                $data['avatar'] = url(Storage::url($path));
+                $data['avatar'] = Storage::url($path);
             }
 
             $user->update(Arr::only($data, [
@@ -72,10 +74,26 @@ class MeController extends Controller
             return $user->fresh(['professional', 'client']);
         });
 
+        $this->deletePublicAvatar($oldAvatar);
+
         return response()->json([
             'message' => 'Perfil atualizado com sucesso.',
             'data' => new UserResource($user),
         ]);
     }
 
+    private function deletePublicAvatar(?string $avatar): void
+    {
+        if (! $avatar) {
+            return;
+        }
+
+        $path = parse_url($avatar, PHP_URL_PATH) ?: $avatar;
+
+        if (! str_starts_with($path, '/storage/avatars/')) {
+            return;
+        }
+
+        Storage::disk('public')->delete(ltrim(substr($path, strlen('/storage/')), '/'));
+    }
 }

@@ -16,7 +16,7 @@ class StoreUserService
         return DB::transaction(function () use ($data) {
             if (! empty($data['avatar_file'])) {
                 $path = $data['avatar_file']->store('avatars', 'public');
-                $data['avatar'] = url(Storage::url($path));
+                $data['avatar'] = Storage::url($path);
             }
 
             $user = User::create(Arr::only($data, [

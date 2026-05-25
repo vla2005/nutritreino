@@ -31,19 +31,15 @@ class ShowClientProgressService
             ],
             'summary' => [
                 'current_weight' => $latest?->weight !== null ? (float) $latest->weight : (float) ($client->weight ?: 0),
+                'current_weight_source' => $latest ? 'record' : 'profile',
+                'current_weight_date' => $latest?->record_date?->toDateString(),
                 'month_variation' => $this->variation($latest, $monthBaseline),
                 'month_variation_percent' => $this->variationPercent($latest, $monthBaseline),
                 'target_weight' => $latest?->target_weight !== null ? (float) $latest->target_weight : null,
                 'target_remaining' => $this->targetRemaining($latest),
                 'last_check_in_date' => $latest?->record_date?->toDateString(),
             ],
-            'weight_history' => $records
-                ->sortBy('record_date')
-                ->values()
-                ->map(fn (ClientProgressRecord $record) => [
-                    'date' => $record->record_date?->toDateString(),
-                    'weight' => (float) $record->weight,
-                ]),
+            'weight_history' => $this->weightHistory($client, $records),
             'measurements' => $this->measurementSummary($latest, $previous),
             'latest_photos' => $this->latestPhotos($records),
             'latest_check_in' => $latest ? [
@@ -58,6 +54,28 @@ class ShowClientProgressService
             'feedbacks' => $this->feedbacks($records),
             'feedback' => $this->feedbacks($records)[0] ?? $this->legacyFeedback($records),
         ];
+    }
+
+    private function weightHistory(Client $client, $records)
+    {
+        if ($records->isEmpty()) {
+            return filled($client->weight)
+                ? collect([[
+                    'date' => null,
+                    'weight' => (float) $client->weight,
+                    'source' => 'profile',
+                ]])
+                : collect();
+        }
+
+        return $records
+            ->sortBy('record_date')
+            ->values()
+            ->map(fn (ClientProgressRecord $record) => [
+                'date' => $record->record_date?->toDateString(),
+                'weight' => (float) $record->weight,
+                'source' => 'record',
+            ]);
     }
 
     private function variation(?ClientProgressRecord $latest, ?ClientProgressRecord $baseline): ?float

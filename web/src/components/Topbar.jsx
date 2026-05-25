@@ -2,6 +2,7 @@ import { useEffect, useRef, useState } from 'react'
 import { Link, useLocation, useNavigate } from 'react-router-dom'
 import { useAuth } from '../composables/useAuth.js'
 import { useTheme } from '../composables/useTheme.js'
+import { normalizeAvatarUrl } from '../utils/avatar.js'
 
 const pageTitles = {
   '/dashboard/home': 'Inicio',
@@ -39,6 +40,7 @@ export default function Topbar({ onToggleSidebar }) {
   }
 
   const roleLabel = roleName(user?.professional?.speciality || role)
+  const avatarUrl = normalizeAvatarUrl(user?.avatar)
 
   return (
     <header className="sticky top-0 z-50 flex h-16 flex-shrink-0 items-center justify-between border-b border-[color:var(--border-soft)] bg-[var(--panel-bg)] px-4 md:px-6">
@@ -66,7 +68,7 @@ export default function Topbar({ onToggleSidebar }) {
         </button>
 
         <button className="flex items-center gap-2.5 rounded-[10px] border border-[color:var(--border-color)] bg-[var(--hover-bg)] px-2.5 py-1.5 transition-colors hover:bg-[var(--hover-strong)]" onClick={() => setMenuOpen((current) => !current)}>
-          {user?.avatar && !avatarFailed ? <img src={user.avatar} className="h-[30px] w-[30px] rounded-full object-cover" onError={() => setAvatarFailed(true)} /> : <div className="flex h-[30px] w-[30px] items-center justify-center rounded-full border-2 border-blue-500/30 bg-gradient-to-br from-blue-600 to-blue-500 text-sm font-bold text-white">{initials}</div>}
+          {avatarUrl && !avatarFailed ? <img src={avatarUrl} className="h-[30px] w-[30px] rounded-full object-cover" onError={() => setAvatarFailed(true)} /> : <div className="flex h-[30px] w-[30px] items-center justify-center rounded-full border-2 border-blue-500/30 bg-gradient-to-br from-blue-600 to-blue-500 text-sm font-bold text-white">{initials}</div>}
           <div className="hidden flex-col text-left md:flex">
             <p className="m-0 whitespace-nowrap text-[0.8125rem] font-semibold text-[var(--text-primary)]">{fullName}</p>
             <p className="m-0 text-[0.7rem] text-[var(--text-secondary)]">{roleLabel}</p>
