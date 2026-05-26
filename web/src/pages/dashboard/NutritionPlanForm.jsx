@@ -4,7 +4,7 @@ import ConfirmDialog from '../../components/ui/ConfirmDialog.jsx'
 import { useAuth } from '../../composables/useAuth.js'
 import { useToast } from '../../composables/useToast.jsx'
 import { listClients } from '../../services/clients.js'
-import { createMealPlan, getMealPlan, updateMealPlan } from '../../services/mealPlans.js'
+import { createMealPlan, generateMealPlanSuggestion, getMealPlan, updateMealPlan } from '../../services/mealPlans.js'
 
 const unitOptions = [
   { value: 'g', label: 'gramas' },
@@ -52,6 +52,14 @@ export default function NutritionPlanForm() {
   const [loadingPlan, setLoadingPlan] = useState(false)
   const [loadedPlan, setLoadedPlan] = useState(null)
   const [confirmDelete, setConfirmDelete] = useState(null)
+  const [generatingAi, setGeneratingAi] = useState(false)
+  const [aiForm, setAiForm] = useState({
+    targetCalories: '',
+    preferences: '',
+    limitations: '',
+    notes: '',
+    mealsCount: 5,
+  })
   const [plan, setPlan] = useState(() => ({
     title: 'Plano Nutricional - Semana 1',
     patientId: initialPatient?.uuid || initialPatient?.id ? String(initialPatient.uuid || initialPatient.id) : '',
@@ -136,6 +144,62 @@ export default function NutritionPlanForm() {
   function updatePlan(field, value) {
     if (readOnly) return
     setPlan((current) => ({ ...current, [field]: value }))
+  }
+
+  function updateAi(field, value) {
+    setAiForm((current) => ({ ...current, [field]: value }))
+  }
+
+  async function generateWithAi() {
+    if (readOnly || generatingAi) return
+
+    if (!plan.patientId) {
+      toast.warning('Selecione um paciente antes de gerar com IA.')
+      return
+    }
+
+    if (!aiForm.targetCalories) {
+      toast.warning('Informe o numero de calorias alvo.')
+      return
+    }
+
+    try {
+      setGeneratingAi(true)
+      const suggestion = await generateMealPlanSuggestion({
+        client_uuid: plan.patientId,
+        objective: optionLabel(goalOptions, plan.clientGoal),
+        plan_type: optionLabel(planTypeOptions, plan.planType),
+        target_calories: Number(aiForm.targetCalories),
+        meals_count: Number(aiForm.mealsCount || 5),
+        preferences: aiForm.preferences,
+        limitations: aiForm.limitations,
+        notes: aiForm.notes || plan.notes,
+      })
+
+      setPlan((current) => ({
+        ...current,
+        title: suggestion.title || current.title,
+        notes: suggestion.general_notes || current.notes,
+      }))
+      setMeals(normalizeMealsForForm(suggestion.meals || []))
+      toast.success('Rascunho gerado. Revise antes de salvar.')
+    } catch (error) {
+      toast.warning(error.message)
+    } finally {
+      setGeneratingAi(false)
+    }
+  }
+
+  function clearAiDraft() {
+    if (readOnly || generatingAi) return
+
+    setPlan((current) => ({
+      ...current,
+      title: 'Plano Nutricional - Semana 1',
+      notes: '',
+    }))
+    setMeals(defaultMeals)
+    toast.success('Rascunho limpo.')
   }
 
   function updateMeal(id, patch) {
@@ -331,6 +395,41 @@ export default function NutritionPlanForm() {
               </PlanField>
             </div>
           </section>
+
+          {!readOnly ? (
+            <section className="plan-card ai-plan-card">
+              <div className="ai-plan-head">
+                <span aria-hidden="true"><SparkIcon /></span>
+                <div>
+                  <h2>Gerar rascunho com IA</h2>
+                  <p>Informe calorias, gostos e limitações. O plano só será criado depois da sua revisão.</p>
+                </div>
+              </div>
+              <div className="ai-plan-grid">
+                <PlanField label="Calorias alvo">
+                  <input type="number" min="800" max="8000" value={aiForm.targetCalories} onChange={(event) => updateAi('targetCalories', event.target.value)} placeholder="Ex: 2200" />
+                </PlanField>
+                <PlanField label="Refeições por dia">
+                  <input type="number" min="1" max="10" value={aiForm.mealsCount} onChange={(event) => updateAi('mealsCount', event.target.value)} />
+                </PlanField>
+                <PlanField label="Gostos e preferências" className="is-full">
+                  <textarea value={aiForm.preferences} onChange={(event) => updateAi('preferences', event.target.value)} placeholder="Ex: gosta de arroz, frango, frutas; não gosta de peixe..." />
+                </PlanField>
+                <PlanField label="Limitações/restrições" className="is-full">
+                  <textarea value={aiForm.limitations} onChange={(event) => updateAi('limitations', event.target.value)} placeholder="Ex: intolerância à lactose, rotina corrida, pouco tempo para cozinhar..." />
+                </PlanField>
+              </div>
+              <div className="ai-plan-actions">
+                <button type="button" className="ai-generate-button" onClick={generateWithAi} disabled={generatingAi}>
+                  <SparkIcon />
+                  {generatingAi ? 'Gerando rascunho...' : 'Gerar com IA'}
+                </button>
+                <button type="button" className="ai-clear-button" onClick={clearAiDraft} disabled={generatingAi}>
+                  Limpar rascunho
+                </button>
+              </div>
+            </section>
+          ) : null}
 
           <section className="plan-meals-section">
             <div className="plan-section-head">
@@ -542,6 +641,53 @@ function normalizeMeals(meals) {
   }))
 }
 
+function normalizeMealsForForm(meals) {
+  if (!meals.length) return defaultMeals
+
+  return meals.map((meal, mealIndex) => ({
+    id: Date.now() + mealIndex,
+    name: meal.name || '',
+    time: String(meal.time || '').slice(0, 5),
+    expanded: mealIndex === 0,
+    instructions: meal.instructions || '',
+    foods: (meal.foods || []).map((food, foodIndex) => ({
+      id: `${Date.now()}-${mealIndex}-${foodIndex}`,
+      name: food.name || '',
+      amount: food.amount || '',
+      unit: normalizeFoodUnit(food.unit, food.name),
+    })),
+  }))
+}
+
+function normalizeFoodUnit(unit, foodName = '') {
+  const normalized = String(unit || '').trim().toLowerCase()
+  const direct = {
+    g: 'g',
+    grama: 'g',
+    gramas: 'g',
+    ml: 'ml',
+    mililitro: 'ml',
+    mililitros: 'ml',
+    un: 'un',
+    unidade: 'un',
+    unidades: 'un',
+    colher: 'colheres',
+    colheres: 'colheres',
+    fatia: 'fatias',
+    fatias: 'fatias',
+  }
+
+  if (direct[normalized]) return direct[normalized]
+
+  const name = String(foodName || '').toLowerCase()
+  if (/(agua|água|suco|leite|vitamina|shake|cha|chá|cafe|café)/.test(name)) return 'ml'
+  if (/(banana|maca|maçã|ovo|laranja|pera|iogurte)/.test(name)) return 'un'
+  if (/(pao|pão|queijo|peito de peru|torrada)/.test(name)) return 'fatias'
+  if (/(azeite|mel|pasta|requeijao|requeijão|chia|linhaça)/.test(name)) return 'colheres'
+
+  return 'g'
+}
+
 function todayInput() {
   return toInputDate(new Date())
 }
@@ -586,4 +732,8 @@ function ChevronIcon({ open }) {
 
 function UtensilsMiniIcon() {
   return <svg viewBox="0 0 24 24" fill="none" aria-hidden="true"><path d="M7 4v7M10 4v7M7 8h3M8.5 11v9M16.5 4v16M14 4c0 4.8.8 7 2.5 7" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round" /></svg>
+}
+
+function SparkIcon() {
+  return <svg viewBox="0 0 24 24" fill="none" aria-hidden="true"><path d="M12 3l1.8 5.2L19 10l-5.2 1.8L12 17l-1.8-5.2L5 10l5.2-1.8L12 3ZM18 15l.9 2.1L21 18l-2.1.9L18 21l-.9-2.1L15 18l2.1-.9L18 15Z" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round" /></svg>
 }

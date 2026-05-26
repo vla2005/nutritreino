@@ -82,6 +82,22 @@ export async function updateMealPlan(uuid, data) {
   return json.data
 }
 
+export async function generateMealPlanSuggestion(data) {
+  const response = await fetch(`${API_URL}/mealplans/ai-suggestion`, {
+    method: 'POST',
+    headers: authHeaders(),
+    body: JSON.stringify(data),
+  })
+
+  const json = await response.json().catch(() => ({}))
+
+  if (!response.ok) {
+    throw responseError(json, 'Nao foi possivel gerar o plano com IA.')
+  }
+
+  return json.data
+}
+
 function responseError(json, fallback) {
   const error = new Error(resolveMessage(json, fallback))
 

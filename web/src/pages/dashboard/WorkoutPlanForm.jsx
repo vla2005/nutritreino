@@ -3,7 +3,7 @@ import { Link, useLocation, useNavigate, useParams } from 'react-router-dom'
 import { useAuth } from '../../composables/useAuth.js'
 import { useToast } from '../../composables/useToast.jsx'
 import { listClients } from '../../services/clients.js'
-import { createWorkoutProgram, getWorkoutProgram, updateWorkoutProgram } from '../../services/workoutPrograms.js'
+import { createWorkoutProgram, generateWorkoutProgramSuggestion, getWorkoutProgram, updateWorkoutProgram } from '../../services/workoutPrograms.js'
 
 const defaultDays = [
   {
@@ -32,6 +32,15 @@ export default function WorkoutPlanForm() {
   const [loadingProgram, setLoadingProgram] = useState(false)
   const [loadedProgram, setLoadedProgram] = useState(null)
   const [saving, setSaving] = useState(false)
+  const [generatingAi, setGeneratingAi] = useState(false)
+  const [aiForm, setAiForm] = useState({
+    weeklyFrequency: 4,
+    sessionDuration: 60,
+    preferences: '',
+    limitations: '',
+    equipment: '',
+    notes: '',
+  })
   const [program, setProgram] = useState(() => ({
     title: 'Programa Hipertrofia - Fase 2',
     patientId: initialPatient?.uuid || initialPatient?.id ? String(initialPatient.uuid || initialPatient.id) : '',
@@ -127,6 +136,62 @@ export default function WorkoutPlanForm() {
   function updateProgram(field, value) {
     if (readOnly) return
     setProgram((current) => ({ ...current, [field]: value }))
+  }
+
+  function updateAi(field, value) {
+    setAiForm((current) => ({ ...current, [field]: value }))
+  }
+
+  async function generateWithAi() {
+    if (readOnly || generatingAi) return
+
+    if (!program.patientId) {
+      toast.warning('Selecione um aluno antes de gerar com IA.')
+      return
+    }
+
+    try {
+      setGeneratingAi(true)
+      const suggestion = await generateWorkoutProgramSuggestion({
+        client_uuid: program.patientId,
+        objective: program.goal,
+        level: program.level,
+        weekly_frequency: Number(aiForm.weeklyFrequency || 4),
+        session_duration: Number(aiForm.sessionDuration || 60),
+        preferences: aiForm.preferences,
+        limitations: aiForm.limitations,
+        equipment: aiForm.equipment,
+        notes: aiForm.notes || program.notes,
+      })
+
+      setProgram((current) => ({
+        ...current,
+        title: suggestion.title || current.title,
+        goal: suggestion.goal || current.goal,
+        level: suggestion.level || current.level,
+        notes: suggestion.general_notes || current.notes,
+      }))
+      setDays(normalizeDaysForForm(suggestion.days || []))
+      toast.success('Rascunho gerado. Revise antes de salvar.')
+    } catch (error) {
+      toast.warning(error.message)
+    } finally {
+      setGeneratingAi(false)
+    }
+  }
+
+  function clearAiDraft() {
+    if (readOnly || generatingAi) return
+
+    setProgram((current) => ({
+      ...current,
+      title: 'Programa Hipertrofia - Fase 2',
+      goal: 'Hipertrofia',
+      level: 'Intermediário',
+      notes: '',
+    }))
+    setDays(defaultDays)
+    toast.success('Rascunho limpo.')
   }
 
   function updateDay(id, patch) {
@@ -324,6 +389,44 @@ export default function WorkoutPlanForm() {
               </PlanField>
             </div>
           </section>
+
+          {!readOnly ? (
+            <section className="plan-card ai-plan-card">
+              <div className="ai-plan-head">
+                <span aria-hidden="true"><SparkIcon /></span>
+                <div>
+                  <h2>Gerar rascunho com IA</h2>
+                  <p>Informe preferências, limitações e estrutura desejada. O treino só será criado depois da sua revisão.</p>
+                </div>
+              </div>
+              <div className="ai-plan-grid">
+                <PlanField label="Treinos por semana">
+                  <input type="number" min="1" max="7" value={aiForm.weeklyFrequency} onChange={(event) => updateAi('weeklyFrequency', event.target.value)} />
+                </PlanField>
+                <PlanField label="Duração por sessão">
+                  <input type="number" min="15" max="240" value={aiForm.sessionDuration} onChange={(event) => updateAi('sessionDuration', event.target.value)} placeholder="Minutos" />
+                </PlanField>
+                <PlanField label="Gostos e preferências" className="is-full">
+                  <textarea value={aiForm.preferences} onChange={(event) => updateAi('preferences', event.target.value)} placeholder="Ex: gosta de musculação, prefere treinos curtos, quer evitar cardio longo..." />
+                </PlanField>
+                <PlanField label="Limitações/restrições" className="is-full">
+                  <textarea value={aiForm.limitations} onChange={(event) => updateAi('limitations', event.target.value)} placeholder="Ex: dor no joelho, lesão no ombro, pouca mobilidade..." />
+                </PlanField>
+                <PlanField label="Equipamentos disponíveis" className="is-full">
+                  <textarea value={aiForm.equipment} onChange={(event) => updateAi('equipment', event.target.value)} placeholder="Ex: academia completa, halteres, elásticos, treino em casa..." />
+                </PlanField>
+              </div>
+              <div className="ai-plan-actions">
+                <button type="button" className="ai-generate-button" onClick={generateWithAi} disabled={generatingAi}>
+                  <SparkIcon />
+                  {generatingAi ? 'Gerando rascunho...' : 'Gerar com IA'}
+                </button>
+                <button type="button" className="ai-clear-button" onClick={clearAiDraft} disabled={generatingAi}>
+                  Limpar rascunho
+                </button>
+              </div>
+            </section>
+          ) : null}
 
           <section className="plan-meals-section">
             <div className="plan-section-head">
@@ -524,6 +627,25 @@ function normalizeDays(days) {
   }))
 }
 
+function normalizeDaysForForm(days) {
+  if (!days.length) return defaultDays
+
+  return days.map((day, dayIndex) => ({
+    id: Date.now() + dayIndex,
+    name: day.name || '',
+    weekDays: day.week_days || '',
+    expanded: dayIndex === 0,
+    exercises: (day.exercises || []).map((exercise, exerciseIndex) => ({
+      id: `${Date.now()}-${dayIndex}-${exerciseIndex}`,
+      name: exercise.name || '',
+      sets: String(exercise.sets || '3'),
+      reps: String(exercise.reps || '10'),
+      rest: String(exercise.rest_seconds ?? '60'),
+      note: exercise.notes || '',
+    })),
+  }))
+}
+
 function todayInput() {
   return toInputDate(new Date())
 }
@@ -572,4 +694,8 @@ function ChevronIcon({ open }) {
 
 function DumbbellIcon() {
   return <svg viewBox="0 0 24 24" fill="none" aria-hidden="true"><path d="m6.5 7.5 10 10M4 10l3-3M7 13l3-3M14 7l3-3M17 10l3-3M4.5 13.5l6-6M13.5 19.5l6-6" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round" /></svg>
+}
+
+function SparkIcon() {
+  return <svg viewBox="0 0 24 24" fill="none" aria-hidden="true"><path d="M12 3l1.8 5.2L19 10l-5.2 1.8L12 17l-1.8-5.2L5 10l5.2-1.8L12 3ZM18 15l.9 2.1L21 18l-2.1.9L18 21l-.9-2.1L15 18l2.1-.9L18 15Z" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round" /></svg>
 }
