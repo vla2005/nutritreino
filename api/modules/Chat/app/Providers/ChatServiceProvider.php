@@ -37,5 +37,9 @@ class ChatServiceProvider extends ModuleServiceProvider
                 'name' => $user->name,
             ];
         });
+
+        Broadcast::channel('users.{userUuid}', function ($user, string $userUuid): bool {
+            return $user->uuid === $userUuid;
+        });
     }
 }

@@ -3,7 +3,9 @@
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Http\UploadedFile;
 use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Facades\Event;
 use Laravel\Sanctum\Sanctum;
+use Modules\Chat\Events\VideoCallSignal;
 use Modules\Chat\Models\Conversation;
 use Modules\Chat\Services\MessageService;
 use Modules\Client\Models\Client;
@@ -75,6 +77,57 @@ test('only a conversation participant can download an encrypted attachment', fun
 
     Sanctum::actingAs($professionalUser);
     $this->getJson('/api/messages/'.$message->uuid.'/attachment')->assertOk();
+});
+
+test('a conversation participant can send a video call signal', function () {
+    Event::fake([VideoCallSignal::class]);
+
+    [$clientUser, $professionalUser] = chatUsersWithRelation('active');
+
+    $conversation = Conversation::create([
+        'first_user_id' => min($clientUser->id, $professionalUser->id),
+        'second_user_id' => max($clientUser->id, $professionalUser->id),
+        'created_by' => $clientUser->id,
+    ]);
+
+    Sanctum::actingAs($clientUser);
+
+    $this->postJson('/api/conversations/'.$conversation->uuid.'/calls/signals', [
+        'call_id' => 'call-test-1',
+        'type' => 'invite',
+        'payload' => [],
+    ])->assertOk()
+        ->assertJsonPath('data.sent', true);
+
+    Event::assertDispatched(VideoCallSignal::class);
+});
+
+test('an intruder cannot send a video call signal to a conversation', function () {
+    Event::fake([VideoCallSignal::class]);
+
+    [$clientUser, $professionalUser] = chatUsersWithRelation('active');
+    $intruder = User::create([
+        'role' => 'client',
+        'name' => 'Sem acesso',
+        'email' => 'sem-acesso@example.com',
+        'password' => 'secret123',
+        'email_verified_at' => now(),
+    ]);
+
+    $conversation = Conversation::create([
+        'first_user_id' => min($clientUser->id, $professionalUser->id),
+        'second_user_id' => max($clientUser->id, $professionalUser->id),
+        'created_by' => $clientUser->id,
+    ]);
+
+    Sanctum::actingAs($intruder);
+
+    $this->postJson('/api/conversations/'.$conversation->uuid.'/calls/signals', [
+        'call_id' => 'call-test-2',
+        'type' => 'invite',
+    ])->assertForbidden();
+
+    Event::assertNotDispatched(VideoCallSignal::class);
 });
 
 function chatUsersWithRelation(string $status): array

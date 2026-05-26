@@ -4,6 +4,7 @@ import { useAuth } from '../composables/useAuth.js'
 import { useTheme } from '../composables/useTheme.js'
 import Sidebar from '../components/Sidebar.jsx'
 import MobileBottomNav from '../components/MobileBottomNav.jsx'
+import { VideoCallProvider } from '../components/VideoCallProvider.jsx'
 import { joinOnlineUsers, leaveOnlineUsers } from '../services/echo.js'
 
 export default function MainLayout() {
@@ -36,18 +37,20 @@ export default function MainLayout() {
 
       {mobileSidebarOpen ? <button className="dashboard-sidebar-overlay" type="button" aria-label="Fechar menu" onClick={() => setMobileSidebarOpen(false)} /> : null}
 
-      <Sidebar
-        collapsed={sidebarCollapsed}
-        mobileOpen={mobileSidebarOpen}
-        onCloseMobile={() => setMobileSidebarOpen(false)}
-        onToggle={() => setSidebarCollapsed((current) => !current)}
-      />
-      <div className={`flex min-w-0 flex-1 flex-col transition-[margin-left] duration-300 md:ml-[262px] ${sidebarCollapsed ? 'md:!ml-[76px]' : ''}`}>
-        <main className="dashboard-main flex-1 overflow-y-auto">
-          <Outlet />
-        </main>
-      </div>
-      <MobileBottomNav />
+      <VideoCallProvider>
+        <Sidebar
+          collapsed={sidebarCollapsed}
+          mobileOpen={mobileSidebarOpen}
+          onCloseMobile={() => setMobileSidebarOpen(false)}
+          onToggle={() => setSidebarCollapsed((current) => !current)}
+        />
+        <div className={`flex min-w-0 flex-1 flex-col transition-[margin-left] duration-300 md:ml-[262px] ${sidebarCollapsed ? 'md:!ml-[76px]' : ''}`}>
+          <main className="dashboard-main flex-1 overflow-y-auto">
+            <Outlet />
+          </main>
+        </div>
+        <MobileBottomNav />
+      </VideoCallProvider>
     </div>
   )
 }

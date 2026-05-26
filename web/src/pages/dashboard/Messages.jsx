@@ -172,6 +172,13 @@ export default function Messages() {
     setSearchParams({ conversation: uuid })
   }
 
+  function startVideoCall() {
+    if (!selected?.uuid || !selected?.participant) return
+    window.dispatchEvent(new CustomEvent('video-call:start', {
+      detail: { conversation: selected },
+    }))
+  }
+
   function handleBodyChange(event) {
     const value = event.target.value
     setBody(value)
@@ -274,7 +281,7 @@ export default function Messages() {
             <button type="button" className="messages-menu-button" aria-label="Buscar na conversa">
               <SearchIcon />
             </button>
-            <button type="button" className="messages-menu-button" aria-label="Ligar">
+            <button type="button" className="messages-menu-button messages-call-button" aria-label="Fazer chamada de video" disabled={!selected?.participant} onClick={startVideoCall}>
               <PhoneIcon />
             </button>
             <button type="button" className="messages-menu-button" aria-label="Mais opcoes">
