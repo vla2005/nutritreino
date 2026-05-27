@@ -38,6 +38,8 @@ class AiPlanSuggestionController extends Controller
             'preferences' => ['nullable', 'string', 'max:2000'],
             'limitations' => ['nullable', 'string', 'max:2000'],
             'notes' => ['nullable', 'string', 'max:2000'],
+            'adjustment_request' => ['nullable', 'string', 'max:2000'],
+            'current_draft' => ['nullable', 'array'],
         ];
 
         if ($type === 'meal') {

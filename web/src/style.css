@@ -2886,6 +2886,7 @@ button.dashboard-secondary-action {
 }
 
 .ai-generate-button,
+.ai-adjust-button,
 .ai-clear-button {
   display: inline-flex;
   min-height: 42px;
@@ -2911,7 +2912,14 @@ button.dashboard-secondary-action {
   color: #405568;
 }
 
+.ai-adjust-button {
+  border: 1px solid #bfe8d5;
+  background: #f2fbf7;
+  color: #0f8f58;
+}
+
 .ai-generate-button:disabled,
+.ai-adjust-button:disabled,
 .ai-clear-button:disabled {
   cursor: not-allowed;
   opacity: 0.72;
@@ -8400,6 +8408,7 @@ button.dashboard-secondary-action {
 
   .ai-plan-actions,
   .ai-generate-button,
+  .ai-adjust-button,
   .ai-clear-button {
     width: 100%;
   }

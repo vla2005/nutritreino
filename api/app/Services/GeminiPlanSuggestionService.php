@@ -66,6 +66,8 @@ class GeminiPlanSuggestionService
         return implode("\n", [
             "Voce e um assistente para profissionais de saude e treino. Gere apenas um rascunho de {$kind} para revisao do profissional.",
             'Nao diagnostique doencas, nao prometa resultados e respeite limitacoes informadas.',
+            'Leve obrigatoriamente em consideracao sexo/genero, idade, peso, altura, objetivo, calorias alvo, preferencias e limitacoes do paciente/aluno.',
+            'Ajuste porcoes, volume de treino, intensidade e observacoes conforme esses dados. Se algum dado estiver ausente, mencione cautela nas orientacoes gerais.',
             'Responda somente JSON valido, sem markdown, sem texto fora do JSON.',
             'Use portugues do Brasil.',
             'O JSON deve seguir exatamente este formato:',
@@ -78,11 +80,14 @@ class GeminiPlanSuggestionService
                 'name' => $client->name,
                 'gender' => $client->gender,
                 'birth_date' => $client->birth_date?->toDateString(),
+                'age' => $client->birth_date?->age,
                 'height_cm' => $client->height,
                 'weight_kg' => $client->weight,
             ], JSON_UNESCAPED_UNICODE | JSON_PRETTY_PRINT),
             'Preferencias, objetivo, calorias, limitacoes e observacoes do profissional:',
             json_encode($context, JSON_UNESCAPED_UNICODE | JSON_PRETTY_PRINT),
+            'Se current_draft e adjustment_request forem enviados, ajuste o rascunho atual em vez de criar um plano totalmente novo. Preserve o que nao foi pedido para mudar.',
+            'Ao ajustar um plano alimentar existente, preserve a ordem cronologica das refeicoes pelo horario. Nao reordene refeicoes sem pedido explicito.',
         ]);
     }
 

@@ -59,6 +59,7 @@ export default function NutritionPlanForm() {
     limitations: '',
     notes: '',
     mealsCount: 5,
+    adjustmentRequest: '',
   })
   const [plan, setPlan] = useState(() => ({
     title: 'Plano Nutricional - Semana 1',
@@ -176,18 +177,60 @@ export default function NutritionPlanForm() {
         notes: aiForm.notes || plan.notes,
       })
 
-      setPlan((current) => ({
-        ...current,
-        title: suggestion.title || current.title,
-        notes: suggestion.general_notes || current.notes,
-      }))
-      setMeals(normalizeMealsForForm(suggestion.meals || []))
+      applyMealSuggestion(suggestion)
       toast.success('Rascunho gerado. Revise antes de salvar.')
     } catch (error) {
       toast.warning(error.message)
     } finally {
       setGeneratingAi(false)
     }
+  }
+
+  async function adjustAiDraft() {
+    if (readOnly || generatingAi) return
+
+    if (!plan.patientId) {
+      toast.warning('Selecione um paciente antes de ajustar com IA.')
+      return
+    }
+
+    if (!aiForm.adjustmentRequest.trim()) {
+      toast.warning('Descreva o ajuste que deseja no rascunho.')
+      return
+    }
+
+    try {
+      setGeneratingAi(true)
+      const suggestion = await generateMealPlanSuggestion({
+        client_uuid: plan.patientId,
+        objective: optionLabel(goalOptions, plan.clientGoal),
+        plan_type: optionLabel(planTypeOptions, plan.planType),
+        target_calories: Number(aiForm.targetCalories || 2000),
+        meals_count: Number(aiForm.mealsCount || meals.length || 5),
+        preferences: aiForm.preferences,
+        limitations: aiForm.limitations,
+        notes: aiForm.notes || plan.notes,
+        adjustment_request: aiForm.adjustmentRequest,
+        current_draft: mealDraftPayload(plan, meals),
+      })
+
+      applyMealSuggestion(suggestion)
+      setAiForm((current) => ({ ...current, adjustmentRequest: '' }))
+      toast.success('Rascunho ajustado. Revise antes de salvar.')
+    } catch (error) {
+      toast.warning(error.message)
+    } finally {
+      setGeneratingAi(false)
+    }
+  }
+
+  function applyMealSuggestion(suggestion) {
+    setPlan((current) => ({
+      ...current,
+      title: suggestion.title || current.title,
+      notes: suggestion.general_notes || current.notes,
+    }))
+      setMeals(sortMealsByTime(normalizeMealsForForm(suggestion.meals || [])))
   }
 
   function clearAiDraft() {
@@ -418,11 +461,17 @@ export default function NutritionPlanForm() {
                 <PlanField label="Limitações/restrições" className="is-full">
                   <textarea value={aiForm.limitations} onChange={(event) => updateAi('limitations', event.target.value)} placeholder="Ex: intolerância à lactose, rotina corrida, pouco tempo para cozinhar..." />
                 </PlanField>
+                <PlanField label="Pedir ajuste no rascunho" className="is-full">
+                  <textarea value={aiForm.adjustmentRequest} onChange={(event) => updateAi('adjustmentRequest', event.target.value)} placeholder="Ex: reduzir carboidratos no jantar, trocar leite por opções sem lactose, aumentar proteína no café da manhã..." />
+                </PlanField>
               </div>
               <div className="ai-plan-actions">
                 <button type="button" className="ai-generate-button" onClick={generateWithAi} disabled={generatingAi}>
                   <SparkIcon />
                   {generatingAi ? 'Gerando rascunho...' : 'Gerar com IA'}
+                </button>
+                <button type="button" className="ai-adjust-button" onClick={adjustAiDraft} disabled={generatingAi}>
+                  Ajustar rascunho
                 </button>
                 <button type="button" className="ai-clear-button" onClick={clearAiDraft} disabled={generatingAi}>
                   Limpar rascunho
@@ -644,7 +693,7 @@ function normalizeMeals(meals) {
 function normalizeMealsForForm(meals) {
   if (!meals.length) return defaultMeals
 
-  return meals.map((meal, mealIndex) => ({
+  return sortMealsByTime(meals.map((meal, mealIndex) => ({
     id: Date.now() + mealIndex,
     name: meal.name || '',
     time: String(meal.time || '').slice(0, 5),
@@ -656,7 +705,35 @@ function normalizeMealsForForm(meals) {
       amount: food.amount || '',
       unit: normalizeFoodUnit(food.unit, food.name),
     })),
-  }))
+  })))
+}
+
+function sortMealsByTime(meals) {
+  return [...meals].sort((a, b) => mealTimeValue(a.time) - mealTimeValue(b.time))
+}
+
+function mealTimeValue(time) {
+  const [hours, minutes] = String(time || '').split(':').map(Number)
+  if (!Number.isFinite(hours)) return 24 * 60
+
+  return hours * 60 + (Number.isFinite(minutes) ? minutes : 0)
+}
+
+function mealDraftPayload(plan, meals) {
+  return {
+    title: plan.title,
+    general_notes: plan.notes,
+    meals: meals.map((meal) => ({
+      name: meal.name,
+      time: meal.time,
+      instructions: meal.instructions,
+      foods: meal.foods.map((food) => ({
+        name: food.name,
+        amount: food.amount,
+        unit: food.unit,
+      })),
+    })),
+  }
 }
 
 function normalizeFoodUnit(unit, foodName = '') {
