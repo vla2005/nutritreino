@@ -7,7 +7,7 @@ import VerifyEmailPage from '@/pages/auth/VerifyEmailPage/VerifyEmailPage.jsx'
 import DashboardHomePage from '@/pages/home/DashboardHomePage/DashboardHomePage.jsx'
 import ClientProfilePage from '@/pages/patients/ClientProfilePage/ClientProfilePage.jsx'
 import MealPlansPage from '@/pages/nutrition/MealPlansPage/MealPlansPage.jsx'
-import Messages from '@/pages/dashboard/Messages.jsx'
+import MessagesPage from '@/pages/messages/MessagesPage/MessagesPage.jsx'
 import NutritionPlanPage from '@/pages/nutrition/NutritionPlanPage/NutritionPlanPage.jsx'
 import ProfessionalProfilePage from '@/pages/professionals/ProfessionalProfilePage/ProfessionalProfilePage.jsx'
 import ClientProgressPage from '@/pages/progress/ClientProgressPage/ClientProgressPage.jsx'
@@ -36,7 +36,7 @@ export default function AppRoutes() {
             <Route path="home" element={<DashboardHomePage />} />
             <Route path="clients/:uuid" element={<ClientProfilePage />} />
             <Route path="meal-plans" element={<MealPlansPage />} />
-            <Route path="messages" element={<Messages />} />
+            <Route path="messages" element={<MessagesPage />} />
             <Route path="progress" element={<ClientProgressPage />} />
             <Route path="settings" element={<ProfileSettingsPage />} />
             <Route path="plans" element={<NutritionPlanPage />} />

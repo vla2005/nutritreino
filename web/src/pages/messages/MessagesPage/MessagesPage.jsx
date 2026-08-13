@@ -1,13 +1,15 @@
 import { useEffect, useMemo, useRef, useState } from 'react'
 import { useSearchParams } from 'react-router-dom'
-import { useAuth } from '../../composables/useAuth.js'
-import { useToast } from '../../composables/useToast.jsx'
-import { getEcho, getOnlineUserUuids, leaveConversationChannel } from '../../services/echo.js'
-import { getAttachmentBlob, getConversation, listConversations, markConversationRead, sendMessage } from '../../services/messages.js'
-import { normalizeAvatarUrl } from '../../utils/avatar.js'
-import chatWallpaper from '../../assets/wpp.webp'
+import chatWallpaper from '@/assets/wpp.webp'
+import { useAuth } from '@/composables/useAuth.js'
+import { useToast } from '@/composables/useToast.jsx'
+import ChatAvatar from '@/features/messages/components/ChatAvatar/ChatAvatar.jsx'
+import TypingIndicator from '@/features/messages/components/TypingIndicator/TypingIndicator.jsx'
+import { getEcho, getOnlineUserUuids, leaveConversationChannel } from '@/services/echo.js'
+import { getAttachmentBlob, getConversation, listConversations, markConversationRead, sendMessage } from '@/services/messages.js'
+import './MessagesPage.css'
 
-export default function Messages() {
+export default function MessagesPage() {
   const toast = useToast()
   const { user } = useAuth()
   const [searchParams, setSearchParams] = useSearchParams()
@@ -275,7 +277,7 @@ export default function Messages() {
                   onClick={() => selectConversation(conversation.uuid)}
                   >
                   <span className="messages-avatar-wrap">
-                    <Avatar name={conversation.participant?.name} avatar={conversation.participant?.avatar} />
+                    <ChatAvatar name={conversation.participant?.name} avatar={conversation.participant?.avatar} />
                     <PresenceDot online={conversation.participant?.is_online} />
                   </span>
                   <span>
@@ -304,14 +306,14 @@ export default function Messages() {
           <button type="button" className="messages-chat-back" onClick={() => setSearchParams({})} aria-label="Voltar para conversas">
             <ArrowLeftIcon />
           </button>
-          {selected?.participant ? <Avatar name={selected.participant.name} avatar={selected.participant.avatar} /> : <div className="messages-contact-placeholder" aria-hidden="true" />}
+          {selected?.participant ? <ChatAvatar name={selected.participant.name} avatar={selected.participant.avatar} /> : <div className="messages-contact-placeholder" aria-hidden="true" />}
           <div className="messages-chat-title">
             <div className="messages-chat-name">
               <strong>{selected?.participant?.name || 'Selecione uma conversa'}</strong>
               {selected?.participant ? <span className="messages-role-pill">{participantLabel(selected.participant)}</span> : null}
             </div>
             <span>
-              {participantTyping ? <TypingLabel /> : selected ? <StatusLabel participant={selected.participant} /> : 'Mensagens privadas'}
+              {participantTyping ? <TypingIndicator variant="label" /> : selected ? <StatusLabel participant={selected.participant} /> : 'Mensagens privadas'}
             </span>
           </div>
           <div className="messages-chat-actions">
@@ -337,7 +339,7 @@ export default function Messages() {
                   ? <DateSeparator key={item.key} label={item.label} />
                   : <MessageBubble key={item.message.uuid} message={item.message} mine={item.message.sender_uuid === user?.uuid} />
               ))}
-              {participantTyping ? <TypingBubble /> : null}
+              {participantTyping ? <TypingIndicator variant="bubble" /> : null}
               <div ref={listEndRef} />
             </div>
           ) : (
@@ -498,41 +500,6 @@ function Attachment({ message }) {
   )
 }
 
-function Avatar({ name = '', avatar = '' }) {
-  const avatarUrl = normalizeAvatarUrl(avatar)
-
-  return (
-    <span className="messages-avatar" aria-hidden="true">
-      {avatarUrl ? <img src={avatarUrl} alt="" /> : initials(name)}
-    </span>
-  )
-}
-
-function TypingLabel() {
-  return (
-    <span className="messages-typing-label">
-      digitando
-      <span aria-hidden="true">
-        <i />
-        <i />
-        <i />
-      </span>
-    </span>
-  )
-}
-
-function TypingBubble() {
-  return (
-    <div className="messages-typing-bubble" aria-label="Contato digitando">
-      <span aria-hidden="true">
-        <i />
-        <i />
-        <i />
-      </span>
-    </div>
-  )
-}
-
 function StatusLabel({ participant }) {
   return (
     <span className={`messages-status-label ${participant?.is_online ? 'is-online' : ''}`}>
@@ -667,11 +634,6 @@ function participantLabel(participant) {
   if (participant?.speciality === 'nutritionist') return 'Nutricionista'
   if (participant?.speciality === 'trainer') return 'Treinador'
   return participant?.role === 'client' ? 'Aluno' : 'Contato'
-}
-
-function initials(name = '') {
-  const parts = name.trim().split(/\s+/).filter(Boolean)
-  return parts.length ? `${parts[0]?.[0] ?? ''}${parts.at(-1)?.[0] ?? ''}`.toUpperCase() : 'CT'
 }
 
 function formatConversationTime(value) {
