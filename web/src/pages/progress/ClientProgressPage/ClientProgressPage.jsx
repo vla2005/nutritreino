@@ -4,6 +4,10 @@ import { useAuth } from '@/composables/useAuth.js'
 import { useToast } from '@/composables/useToast.jsx'
 import ProgressAvatar from '@/features/progress/components/ProgressAvatar/ProgressAvatar.jsx'
 import ProgressSummaryCard from '@/features/progress/components/ProgressSummaryCard/ProgressSummaryCard.jsx'
+import ProgressCheckIn from './components/ProgressCheckIn.jsx'
+import ProgressMeasurements from './components/ProgressMeasurements.jsx'
+import ProgressPhotos from './components/ProgressPhotos.jsx'
+import WeightChart from './components/WeightChart.jsx'
 import { createProgressRecord, getProgress, getProgressAccess, grantProgressAccess, revokeProgressAccess, saveProgressFeedback } from '@/services/progress.js'
 import './ClientProgressPage.css'
 
@@ -109,11 +113,7 @@ export default function ClientProgressPage() {
             <h2>Medidas corporais</h2>
             <button type="button" onClick={() => setHistoryDialog('measurements')}>Ver histórico</button>
           </div>
-          <div className="progress-measure-list">
-            {(progress?.measurements || measurementItems.map((item) => ({ type: item.key }))).map((item) => (
-              <MeasurementRow key={item.type} item={item} />
-            ))}
-          </div>
+          <ProgressMeasurements measurements={progress?.measurements} items={measurementItems} />
         </article>
       </section>
 
@@ -123,7 +123,7 @@ export default function ClientProgressPage() {
             <h2>Fotos de progresso</h2>
             <span>Abrir galeria <ChevronRightIcon /></span>
           </button>
-          <PhotoGrid photos={progress?.latest_photos || []} onOpen={(category) => setPhotoDialog({ mode: 'gallery', category })} />
+          <ProgressPhotos photos={progress?.latest_photos || []} items={photoItems} onOpen={(category) => setPhotoDialog({ mode: 'gallery', category })} />
         </article>
 
         <article className="progress-card">
@@ -131,7 +131,7 @@ export default function ClientProgressPage() {
             <h2>Check-in semanal</h2>
             <button type="button" onClick={() => setHistoryDialog('checkins')}>Ver histórico</button>
           </div>
-          <CheckInRows values={progress?.latest_check_in || {}} />
+          <ProgressCheckIn values={progress?.latest_check_in || {}} items={checkItems} />
         </article>
       </section>
 
@@ -283,85 +283,6 @@ function ProgressAccessDialog({ onClose }) {
           </>
         )}
       </div>
-    </div>
-  )
-}
-
-function WeightChart({ points }) {
-  const values = (points || []).filter((item) => Number.isFinite(Number(item.weight)))
-  if (!values.length) {
-    return <div className="progress-chart is-empty"><span>Nenhum peso registrado.</span></div>
-  }
-
-  const weights = values.map((item) => Number(item.weight))
-  const padding = values.length === 1 ? 2 : 1
-  const min = Math.min(...weights) - padding
-  const max = Math.max(...weights) + padding
-  const width = 720
-  const height = 220
-  const gridLines = chartGridLines(min, max)
-  const plot = values.map((item, index) => {
-    const x = 38 + (index / Math.max(1, values.length - 1)) * (width - 76)
-    const y = 28 + ((max - Number(item.weight)) / Math.max(1, max - min)) * (height - 58)
-    return { x, y, item }
-  })
-  const d = plot.map((point, index) => `${index === 0 ? 'M' : 'L'} ${point.x} ${point.y}`).join(' ')
-  const last = plot.at(-1)
-  const tooltipLeft = last ? Math.min(88, Math.max(12, (last.x / width) * 100)) : 0
-  const tooltipTop = last ? Math.min(72, Math.max(12, (last.y / height) * 100)) : 0
-  const dateLabels = chartDateLabels(values)
-
-  return (
-    <div className="progress-chart">
-      <svg viewBox={`0 0 ${width} ${height}`} aria-hidden="true">
-        {gridLines.map((line, index) => <g key={line}><line x1="30" y1={32 + index * 36} x2="690" y2={32 + index * 36} /><text x="2" y={37 + index * 36}>{formatNumber(line)}</text></g>)}
-        {plot.length > 1 ? <path d={d} /> : null}
-        {plot.map((point) => <circle key={`${point.x}-${point.y}`} cx={point.x} cy={point.y} r="4" />)}
-        {last ? <circle className="is-last" cx={last.x} cy={last.y} r="7" /> : null}
-      </svg>
-      {last ? <div className="progress-chart-tooltip" style={{ left: `${tooltipLeft}%`, top: `${tooltipTop}%` }}>{last.item.source === 'profile' ? 'Peso inicial' : formatDate(last.item.date)}<strong>{formatNumber(last.item.weight)} kg</strong></div> : null}
-      <div className="progress-chart-dates">{dateLabels.map((label, index) => <span key={`${label}-${index}`}>{label}</span>)}</div>
-    </div>
-  )
-}
-
-function MeasurementRow({ item }) {
-  const meta = measurementItems.find((entry) => entry.key === item.type) || measurementItems[0]
-  return (
-    <div className="progress-measure-row">
-      <span aria-hidden="true">{meta.icon}</span>
-      <strong>{meta.label}</strong>
-      <b>{item.value ? `${formatNumber(item.value)} cm` : '-'}</b>
-      <small className={Number(item.delta || 0) > 0 ? 'is-up' : 'is-down'}>{item.delta === null || item.delta === undefined ? '- 0 cm' : `${Number(item.delta) > 0 ? '+' : ''}${formatNumber(item.delta)} cm`}</small>
-    </div>
-  )
-}
-
-function PhotoGrid({ photos, onOpen }) {
-  const byType = Object.fromEntries(photos.map((photo) => [photo.type, photo]))
-  return (
-    <div className="progress-photo-grid">
-      {photoItems.map((item) => (
-        <button type="button" className="progress-photo-card" key={item.key} onClick={() => onOpen(item.key)}>
-          {byType[item.key]?.url ? <img src={byType[item.key].url} alt="" /> : <div className="progress-photo-placeholder"><PhotoIcon /></div>}
-          <span>{formatDate(byType[item.key]?.record_date || new Date())}</span>
-          <strong>{item.label}</strong>
-        </button>
-      ))}
-    </div>
-  )
-}
-
-function CheckInRows({ values }) {
-  return (
-    <div className="progress-check-list">
-      {checkItems.map((item) => (
-        <div className="progress-check-row" key={item.key}>
-          <span aria-hidden="true">{item.icon}</span>
-          <strong>{item.label}</strong>
-          <RatingDots value={values?.[item.key] || 0} />
-        </div>
-      ))}
     </div>
   )
 }
@@ -760,11 +681,9 @@ function RecordDialog({ record, role, onSaved, onClose }) {
           <ProgressSummaryCard tone="orange" icon={<TargetIcon />} label="Meta" value={record.target_weight ? `${formatNumber(record.target_weight)} kg` : '-'} detail="Meta registrada" />
         </div>
         <h3>Medidas</h3>
-        <div className="progress-measure-list">
-          {measurementItems.map((item) => <MeasurementRow key={item.key} item={{ type: item.key, value: record.measurements?.[item.key], delta: null }} />)}
-        </div>
+        <ProgressMeasurements measurements={measurementItems.map((item) => ({ type: item.key, value: record.measurements?.[item.key], delta: null }))} items={measurementItems} />
         <h3>Check-in</h3>
-        <CheckInRows values={record.check_in || {}} />
+        <ProgressCheckIn values={record.check_in || {}} items={checkItems} />
         <h3>Fotos</h3>
         <div className="progress-photo-history">
           {(record.photos || []).map((item) => (
@@ -828,25 +747,6 @@ function variationDetail(summary = {}) {
   return `${signedNumber(summary.month_variation_percent)}% no período`
 }
 
-function chartGridLines(min, max) {
-  const step = Math.max(1, Math.ceil((max - min) / 4))
-  const top = Math.ceil(max)
-
-  return Array.from({ length: 5 }, (_, index) => top - index * step)
-}
-
-function chartDateLabels(values) {
-  if (values.length === 1) {
-    return [values[0].source === 'profile' ? 'Inicial' : formatDate(values[0].date)]
-  }
-
-  const sampleIndexes = [0, 0.2, 0.4, 0.6, 0.8, 1]
-    .map((ratio) => Math.round(ratio * (values.length - 1)))
-    .filter((index, position, list) => list.indexOf(index) === position)
-
-  return sampleIndexes.map((index) => formatDate(values[index]?.date))
-}
-
 function formatNumber(value) {
   const number = Number(value || 0)
   return number.toLocaleString('pt-BR', { minimumFractionDigits: number % 1 ? 1 : 0, maximumFractionDigits: 1 })
@@ -863,10 +763,6 @@ function formatDate(value) {
   const date = value instanceof Date ? value : new Date(value)
   if (Number.isNaN(date.getTime())) return value
   return date.toLocaleDateString('pt-BR')
-}
-
-function formatShortDate(value) {
-  return value.toLocaleDateString('pt-BR', { day: '2-digit', month: 'short' }).replace('.', '')
 }
 
 function photoLabel(type) {
