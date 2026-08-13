@@ -1,9 +1,10 @@
 import { createContext, useCallback, useContext, useEffect, useMemo, useRef, useState } from 'react'
-import { useAuth } from '../composables/useAuth.js'
-import { useToast } from '../composables/useToast.jsx'
-import { getEcho } from '../services/echo.js'
-import { sendCallSignal } from '../services/calls.js'
-import { normalizeAvatarUrl } from '../utils/avatar.js'
+import { useAuth } from '@/composables/useAuth.js'
+import { useToast } from '@/composables/useToast.jsx'
+import VideoCallAvatar from '@/features/video-call/components/VideoCallAvatar/VideoCallAvatar.jsx'
+import { sendCallSignal } from '@/services/calls.js'
+import { getEcho } from '@/services/echo.js'
+import './VideoCallProvider.css'
 
 const VideoCallContext = createContext(null)
 const rtcConfig = { iceServers: [{ urls: 'stun:stun.l.google.com:19302' }] }
@@ -542,7 +543,7 @@ function IncomingCallDialog({ call, onAccept, onReject }) {
   return (
     <div className="video-call-incoming-backdrop" role="dialog" aria-modal="true" aria-label="Chamada recebida">
       <div className="video-call-incoming">
-        <Avatar participant={call.participant} />
+        <VideoCallAvatar participant={call.participant} />
         <div>
           <p>Chamada de video</p>
           <strong>{call.participant?.name || 'Contato'}</strong>
@@ -846,7 +847,7 @@ function CallWindow({ call, remoteStream, localStream, micEnabled, cameraEnabled
           <video ref={remoteVideoRef} autoPlay playsInline webkit-playsinline="true" />
         ) : (
           <div className="video-call-waiting">
-            <Avatar participant={call.participant} />
+            <VideoCallAvatar participant={call.participant} />
             <strong>{call.participant?.name || 'Contato'}</strong>
             <span>{statusLabel(call.status)}</span>
           </div>
@@ -862,7 +863,7 @@ function CallWindow({ call, remoteStream, localStream, micEnabled, cameraEnabled
             tabIndex={0}
             aria-label="Mover sua camera"
           >
-            {localStream ? <video ref={localVideoRef} autoPlay muted playsInline /> : <Avatar participant={call.participant} />}
+            {localStream ? <video ref={localVideoRef} autoPlay muted playsInline /> : <VideoCallAvatar participant={call.participant} />}
           </div>
         ) : null}
 
@@ -1047,19 +1048,6 @@ function mediaErrorMessage(error) {
   if (error?.message) return error.message
 
   return 'Nao foi possivel acessar camera e microfone.'
-}
-
-function Avatar({ participant }) {
-  const avatarUrl = normalizeAvatarUrl(participant?.avatar)
-  const name = participant?.name || ''
-  const parts = name.trim().split(/\s+/).filter(Boolean)
-  const initials = parts.length ? `${parts[0]?.[0] ?? ''}${parts.at(-1)?.[0] ?? ''}`.toUpperCase() : 'CT'
-
-  return (
-    <span className="video-call-avatar" aria-hidden="true">
-      {avatarUrl ? <img src={avatarUrl} alt="" /> : initials}
-    </span>
-  )
 }
 
 function statusLabel(status) {
