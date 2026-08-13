@@ -1,11 +1,15 @@
 import { useEffect, useMemo, useState } from 'react'
-import { Link, useLocation, useNavigate, useParams } from 'react-router-dom'
+import { useLocation, useNavigate, useParams } from 'react-router-dom'
 import AiLoadingIcon from '@/shared/components/ui/AiLoading/AiLoadingIcon.jsx'
 import AiLoadingOverlay from '@/shared/components/ui/AiLoading/AiLoadingOverlay.jsx'
-import { useAuth } from '../../composables/useAuth.js'
-import { useToast } from '../../composables/useToast.jsx'
-import { listClients } from '../../services/clients.js'
-import { createWorkoutProgram, generateWorkoutProgramSuggestion, getWorkoutProgram, updateWorkoutProgram } from '../../services/workoutPrograms.js'
+import { useAuth } from '@/composables/useAuth.js'
+import { useToast } from '@/composables/useToast.jsx'
+import PlanField from '@/features/plans/components/PlanField/PlanField.jsx'
+import { ProfessionalSummaryLine, SummaryLine } from '@/features/plans/components/PlanSummaryLine/PlanSummaryLine.jsx'
+import '@/features/plans/styles/PlanEditor.css'
+import { listClients } from '@/services/clients.js'
+import { createWorkoutProgram, generateWorkoutProgramSuggestion, getWorkoutProgram, updateWorkoutProgram } from '@/services/workoutPrograms.js'
+import './WorkoutPlanPage.css'
 
 const defaultDays = [
   {
@@ -17,7 +21,7 @@ const defaultDays = [
   },
 ]
 
-export default function WorkoutPlanForm() {
+export default function WorkoutPlanPage() {
   const location = useLocation()
   const navigate = useNavigate()
   const { uuid } = useParams()
@@ -121,7 +125,7 @@ export default function WorkoutPlanForm() {
 
   if (!canAccessWorkout) {
     return (
-      <div className="nutrition-plan-page">
+      <div className="plan-editor-page workout-plan-page">
         <header className="plan-page-header">
           <button type="button" className="plan-back-button" onClick={() => navigate(-1)} aria-label="Voltar">
             <ArrowLeftIcon />
@@ -323,7 +327,7 @@ export default function WorkoutPlanForm() {
   }
 
   return (
-    <div className="nutrition-plan-page">
+    <div className="plan-editor-page workout-plan-page">
       {generatingAi ? <AiLoadingOverlay text="IA montando o rascunho do treino" /> : null}
 
       <header className="plan-page-header">
@@ -574,38 +578,6 @@ function WorkoutDayCard({ day, onUpdate, onRemove, onAddExercise, onUpdateExerci
   )
 }
 
-function PlanField({ label, className = '', children }) {
-  return (
-    <label className={`plan-field ${className}`}>
-      <span>{label}</span>
-      {children}
-    </label>
-  )
-}
-
-function SummaryLine({ label, value }) {
-  return (
-    <div>
-      <span>{label}</span>
-      <strong>{value}</strong>
-    </div>
-  )
-}
-
-function ProfessionalSummaryLine({ label, professional }) {
-  return (
-    <div>
-      <span>{label}</span>
-      {professional?.uuid ? (
-        <Link className="plan-professional-link" to={`/dashboard/professionals/${professional.uuid}`}>
-          {professional.name || 'Profissional'}
-        </Link>
-      ) : (
-        <strong>{professional?.name || '-'}</strong>
-      )}
-    </div>
-  )
-}
 
 function mergePatients(current, incoming) {
   const map = new Map()

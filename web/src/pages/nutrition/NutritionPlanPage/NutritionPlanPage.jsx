@@ -7,8 +7,9 @@ import { useAuth } from '@/composables/useAuth.js'
 import { useToast } from '@/composables/useToast.jsx'
 import { listClients } from '@/services/clients.js'
 import { createMealPlan, generateMealPlanSuggestion, getMealPlan, updateMealPlan } from '@/services/mealPlans.js'
-import PlanField from './components/PlanField.jsx'
-import { ProfessionalSummaryLine, SummaryLine } from './components/PlanSummaryLine.jsx'
+import PlanField from '@/features/plans/components/PlanField/PlanField.jsx'
+import { ProfessionalSummaryLine, SummaryLine } from '@/features/plans/components/PlanSummaryLine/PlanSummaryLine.jsx'
+import '@/features/plans/styles/PlanEditor.css'
 import './NutritionPlanPage.css'
 
 const unitOptions = [
@@ -378,7 +379,7 @@ export default function NutritionPlanPage() {
   }
 
   return (
-    <div className="nutrition-plan-page">
+    <div className="plan-editor-page nutrition-plan-page">
       {generatingAi ? <AiLoadingOverlay text="IA montando o rascunho da dieta" /> : null}
 
       <header className="plan-page-header">

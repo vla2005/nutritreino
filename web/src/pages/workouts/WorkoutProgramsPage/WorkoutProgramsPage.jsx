@@ -1,12 +1,13 @@
 import { useEffect, useMemo, useState } from 'react'
 import { Link, useLocation } from 'react-router-dom'
 import Pagination from '@/shared/components/ui/Pagination/Pagination.jsx'
-import { useAuth } from '../../composables/useAuth.js'
-import { useToast } from '../../composables/useToast.jsx'
-import { listWorkoutPrograms } from '../../services/workoutPrograms.js'
-import { normalizeAvatarUrl } from '../../utils/avatar.js'
+import { useAuth } from '@/composables/useAuth.js'
+import { useToast } from '@/composables/useToast.jsx'
+import { listWorkoutPrograms } from '@/services/workoutPrograms.js'
+import { normalizeAvatarUrl } from '@/utils/avatar.js'
+import './WorkoutProgramsPage.css'
 
-export default function WorkoutPrograms() {
+export default function WorkoutProgramsPage() {
   const toast = useToast()
   const location = useLocation()
   const { user } = useAuth()

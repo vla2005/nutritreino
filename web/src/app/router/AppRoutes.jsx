@@ -12,8 +12,8 @@ import NutritionPlanPage from '@/pages/nutrition/NutritionPlanPage/NutritionPlan
 import ProfessionalProfilePage from '@/pages/professionals/ProfessionalProfilePage/ProfessionalProfilePage.jsx'
 import ClientProgress from '@/pages/dashboard/ClientProgress.jsx'
 import ProfileSettings from '@/pages/dashboard/ProfileSettings.jsx'
-import WorkoutPlanForm from '@/pages/dashboard/WorkoutPlanForm.jsx'
-import WorkoutPrograms from '@/pages/dashboard/WorkoutPrograms.jsx'
+import WorkoutPlanPage from '@/pages/workouts/WorkoutPlanPage/WorkoutPlanPage.jsx'
+import WorkoutProgramsPage from '@/pages/workouts/WorkoutProgramsPage/WorkoutProgramsPage.jsx'
 import PatientsPage from '@/pages/patients/PatientsPage/PatientsPage.jsx'
 import AuthenticatedOutlet from './AuthenticatedOutlet.jsx'
 import ProtectedRoute from './ProtectedRoute.jsx'
@@ -42,9 +42,9 @@ export default function AppRoutes() {
             <Route path="plans" element={<NutritionPlanPage />} />
             <Route path="plans/:uuid" element={<NutritionPlanPage />} />
             <Route path="professionals/:uuid" element={<ProfessionalProfilePage />} />
-            <Route path="workouts" element={<WorkoutPrograms />} />
-            <Route path="workouts/new" element={<WorkoutPlanForm />} />
-            <Route path="workouts/:uuid" element={<WorkoutPlanForm />} />
+            <Route path="workouts" element={<WorkoutProgramsPage />} />
+            <Route path="workouts/new" element={<WorkoutPlanPage />} />
+            <Route path="workouts/:uuid" element={<WorkoutPlanPage />} />
           </Route>
         </Route>
       </Route>
