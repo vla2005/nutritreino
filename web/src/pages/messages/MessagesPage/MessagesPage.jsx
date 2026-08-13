@@ -6,7 +6,8 @@ import { useToast } from '@/composables/useToast.jsx'
 import ChatAvatar from '@/features/messages/components/ChatAvatar/ChatAvatar.jsx'
 import TypingIndicator from '@/features/messages/components/TypingIndicator/TypingIndicator.jsx'
 import { getEcho, getOnlineUserUuids, leaveConversationChannel } from '@/services/echo.js'
-import { getAttachmentBlob, getConversation, listConversations, markConversationRead, sendMessage } from '@/services/messages.js'
+import { getConversation, listConversations, markConversationRead, sendMessage } from '@/services/messages.js'
+import MessageBubble, { DateSeparator } from './components/MessageBubble.jsx'
 import './MessagesPage.css'
 
 export default function MessagesPage() {
@@ -373,133 +374,6 @@ export default function MessagesPage() {
   )
 }
 
-function MessageBubble({ message, mine }) {
-  if (message.type === 'video_call') {
-    return <VideoCallBubble message={message} mine={mine} />
-  }
-
-  return (
-    <article className={`messages-bubble ${mine ? 'is-mine' : ''}`}>
-      {message.body ? <p>{message.body}</p> : null}
-      {message.attachment ? <Attachment message={message} /> : null}
-      <span className="messages-bubble-meta">
-        <time>{formatMessageTime(message.created_at)}</time>
-        {mine ? <ReadReceipt read={Boolean(message.read_at)} /> : null}
-      </span>
-    </article>
-  )
-}
-
-function VideoCallBubble({ message, mine }) {
-  return (
-    <article className={`messages-bubble messages-call-history ${mine ? 'is-mine' : ''}`}>
-      <span className="messages-call-history-icon" aria-hidden="true">
-        <VideoIcon />
-      </span>
-      <span className="messages-call-history-content">
-        <strong>{callHistoryTitle(message, mine)}</strong>
-        <small>{callHistorySubtitle(message, mine)}</small>
-      </span>
-      <span className="messages-bubble-meta">
-        <time>{formatMessageTime(message.created_at)}</time>
-        {mine ? <ReadReceipt read={Boolean(message.read_at)} /> : null}
-      </span>
-    </article>
-  )
-}
-
-function DateSeparator({ label }) {
-  return <div className="messages-date-separator"><span>{label}</span></div>
-}
-
-function Attachment({ message }) {
-  const toast = useToast()
-  const [url, setUrl] = useState('')
-  const [dialogOpen, setDialogOpen] = useState(false)
-  const [zoom, setZoom] = useState(1)
-
-  useEffect(() => {
-    let mounted = true
-    let objectUrl = ''
-
-    async function loadImage() {
-      if (!message.attachment?.mime?.startsWith('image/')) return
-      try {
-        const blob = await getAttachmentBlob(message.uuid)
-        objectUrl = URL.createObjectURL(blob)
-        if (mounted) setUrl(objectUrl)
-      } catch (err) {
-        if (mounted) toast.warning(err.message)
-      }
-    }
-
-    loadImage()
-
-    return () => {
-      mounted = false
-      if (objectUrl) URL.revokeObjectURL(objectUrl)
-    }
-  }, [message, toast])
-
-  async function download() {
-    try {
-      const blob = await getAttachmentBlob(message.uuid)
-      const objectUrl = URL.createObjectURL(blob)
-      const link = document.createElement('a')
-      link.href = objectUrl
-      link.download = message.attachment.name || 'arquivo'
-      link.click()
-      URL.revokeObjectURL(objectUrl)
-    } catch (err) {
-      toast.warning(err.message)
-    }
-  }
-
-  if (url) {
-    return (
-      <>
-        <button type="button" className="messages-image-attachment" onClick={() => setDialogOpen(true)}>
-          <img src={url} alt={message.attachment.name || 'Imagem enviada'} />
-        </button>
-
-        {dialogOpen ? (
-          <div className="image-dialog-overlay" role="dialog" aria-modal="true" aria-label="Imagem enviada">
-            <div className="image-dialog-toolbar">
-              <button type="button" onClick={() => setZoom((current) => Math.max(0.5, Number((current - 0.25).toFixed(2))))} aria-label="Diminuir zoom">
-                <ZoomOutIcon />
-              </button>
-              <span>{Math.round(zoom * 100)}%</span>
-              <button type="button" onClick={() => setZoom((current) => Math.min(3, Number((current + 0.25).toFixed(2))))} aria-label="Aumentar zoom">
-                <ZoomInIcon />
-              </button>
-              <button type="button" onClick={download} aria-label="Baixar imagem">
-                <DownloadIcon />
-              </button>
-              <button type="button" onClick={() => setDialogOpen(false)} aria-label="Fechar">
-                <CloseIcon />
-              </button>
-            </div>
-            <button type="button" className="image-dialog-backdrop" aria-label="Fechar imagem" onClick={() => setDialogOpen(false)} />
-            <div className="image-dialog-stage">
-              <img src={url} alt={message.attachment.name || 'Imagem enviada'} style={{ transform: `scale(${zoom})` }} />
-            </div>
-          </div>
-        ) : null}
-      </>
-    )
-  }
-
-  return (
-    <button type="button" className="messages-file-attachment" onClick={download}>
-      <span className="messages-file-icon"><FileIcon /></span>
-      <span>
-        <strong>{message.attachment.name || 'Arquivo'}</strong>
-        <small>{fileMeta(message.attachment)}</small>
-      </span>
-    </button>
-  )
-}
-
 function StatusLabel({ participant }) {
   return (
     <span className={`messages-status-label ${participant?.is_online ? 'is-online' : ''}`}>
@@ -511,15 +385,6 @@ function StatusLabel({ participant }) {
 
 function PresenceDot({ online }) {
   return <i className={`messages-presence-dot ${online ? 'is-online' : ''}`} aria-hidden="true" />
-}
-
-function ReadReceipt({ read }) {
-  return (
-    <span className={`messages-read-receipt ${read ? 'is-read' : ''}`} aria-label={read ? 'Mensagem lida' : 'Mensagem enviada'}>
-      <CheckIcon />
-      <CheckIcon />
-    </span>
-  )
 }
 
 function applyOnlineStatus(conversations, onlineUsers) {
@@ -592,28 +457,6 @@ function conversationPreview(message) {
   return message.body || attachmentLabel(message) || 'Mensagem'
 }
 
-function callHistoryTitle(message, mine) {
-  if (message.body === 'ended') return 'Chamada de video'
-  if (message.body === 'no-answer') return mine ? 'Chamada nao atendida' : 'Chamada perdida'
-  if (message.body === 'busy') return mine ? 'Chamada nao atendida' : 'Chamada perdida'
-  if (message.body === 'media-denied') return mine ? 'Chamada nao completada' : 'Chamada perdida'
-  if (message.body === 'rejected') return mine ? 'Chamada recusada' : 'Chamada perdida'
-  return 'Chamada de video'
-}
-
-function callHistorySubtitle(message, mine) {
-  if (message.body === 'ended') return mine ? 'Voce encerrou a chamada' : 'Chamada encerrada'
-  if (message.body === 'no-answer') return mine ? 'Ninguem atendeu em 45 segundos' : 'Voce nao atendeu a chamada'
-  if (message.body === 'busy') return mine ? 'O contato estava em outra chamada' : 'Voce estava em outra chamada'
-  if (message.body === 'media-denied') return mine ? 'Nao foi possivel iniciar camera ou microfone' : 'O contato nao conseguiu entrar'
-  if (message.body === 'rejected') return mine ? 'O contato recusou a chamada' : 'Voce recusou a chamada'
-  return mine ? 'Chamada enviada' : 'Chamada recebida'
-}
-
-function fileMeta(attachment) {
-  return `${fileType(attachment?.mime)} - ${formatBytes(attachment?.size)}`
-}
-
 function fileType(mime = '') {
   if (!mime) return 'Arquivo'
   if (mime === 'application/pdf') return 'PDF'
@@ -641,13 +484,6 @@ function formatConversationTime(value) {
   const date = new Date(value)
   if (Number.isNaN(date.getTime())) return ''
   return date.toLocaleDateString('pt-BR', { day: '2-digit', month: '2-digit' })
-}
-
-function formatMessageTime(value) {
-  if (!value) return ''
-  const date = new Date(value)
-  if (Number.isNaN(date.getTime())) return ''
-  return date.toLocaleTimeString('pt-BR', { hour: '2-digit', minute: '2-digit' })
 }
 
 function messagesWithDateSeparators(messages = []) {
@@ -713,30 +549,6 @@ function AttachIcon() {
 
 function SendIcon() {
   return <svg viewBox="0 0 24 24" fill="none" aria-hidden="true"><path d="M21 4 10.6 14.4M21 4l-6.6 17-3.8-6.6L4 10.6 21 4Z" stroke="currentColor" strokeWidth="1.9" strokeLinecap="round" strokeLinejoin="round" /></svg>
-}
-
-function CheckIcon() {
-  return <svg viewBox="0 0 24 24" fill="none" aria-hidden="true"><path d="m5 13 4 4L19 7" stroke="currentColor" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round" /></svg>
-}
-
-function FileIcon() {
-  return <svg viewBox="0 0 24 24" fill="none" aria-hidden="true"><path d="M7 3h7l5 5v13H7V3Z" fill="currentColor" opacity="0.92" /><path d="M14 3v5h5" stroke="rgba(255,255,255,.72)" strokeWidth="1.5" strokeLinejoin="round" /></svg>
-}
-
-function ZoomOutIcon() {
-  return <svg viewBox="0 0 24 24" fill="none" aria-hidden="true"><path d="M11 19a8 8 0 1 1 0-16 8 8 0 0 1 0 16ZM21 21l-4.35-4.35M8 11h6" stroke="currentColor" strokeWidth="2" strokeLinecap="round" /></svg>
-}
-
-function ZoomInIcon() {
-  return <svg viewBox="0 0 24 24" fill="none" aria-hidden="true"><path d="M11 19a8 8 0 1 1 0-16 8 8 0 0 1 0 16ZM21 21l-4.35-4.35M11 8v6M8 11h6" stroke="currentColor" strokeWidth="2" strokeLinecap="round" /></svg>
-}
-
-function DownloadIcon() {
-  return <svg viewBox="0 0 24 24" fill="none" aria-hidden="true"><path d="M12 4v10M8 10l4 4 4-4M5 20h14" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" /></svg>
-}
-
-function CloseIcon() {
-  return <svg viewBox="0 0 24 24" fill="none" aria-hidden="true"><path d="m6 6 12 12M18 6 6 18" stroke="currentColor" strokeWidth="2" strokeLinecap="round" /></svg>
 }
 
 function ArrowLeftIcon() {
