@@ -1,27 +1,31 @@
+import { lazy, Suspense } from 'react'
 import { Navigate, Route, Routes } from 'react-router-dom'
-import AppShell from '@/layouts/AppShell/AppShell.jsx'
-import AcceptInvitePage from '@/pages/invitations/AcceptInvitePage/AcceptInvitePage.jsx'
-import LoginPage from '@/pages/auth/LoginPage/LoginPage.jsx'
-import RegisterPage from '@/pages/auth/RegisterPage/RegisterPage.jsx'
-import VerifyEmailPage from '@/pages/auth/VerifyEmailPage/VerifyEmailPage.jsx'
-import DashboardHomePage from '@/pages/home/DashboardHomePage/DashboardHomePage.jsx'
-import ClientProfilePage from '@/pages/patients/ClientProfilePage/ClientProfilePage.jsx'
-import MealPlansPage from '@/pages/nutrition/MealPlansPage/MealPlansPage.jsx'
-import MessagesPage from '@/pages/messages/MessagesPage/MessagesPage.jsx'
-import NutritionPlanPage from '@/pages/nutrition/NutritionPlanPage/NutritionPlanPage.jsx'
-import ProfessionalProfilePage from '@/pages/professionals/ProfessionalProfilePage/ProfessionalProfilePage.jsx'
-import ClientProgressPage from '@/pages/progress/ClientProgressPage/ClientProgressPage.jsx'
-import ProfileSettingsPage from '@/pages/settings/ProfileSettingsPage/ProfileSettingsPage.jsx'
-import WorkoutPlanPage from '@/pages/workouts/WorkoutPlanPage/WorkoutPlanPage.jsx'
-import WorkoutProgramsPage from '@/pages/workouts/WorkoutProgramsPage/WorkoutProgramsPage.jsx'
-import PatientsPage from '@/pages/patients/PatientsPage/PatientsPage.jsx'
+import RouteFallback from '@/shared/components/ui/RouteFallback/RouteFallback.jsx'
 import AuthenticatedOutlet from './AuthenticatedOutlet.jsx'
 import ProtectedRoute from './ProtectedRoute.jsx'
 import '@/features/auth/components/AuthLayout/AuthResponsive.css'
 
+const AppShell = lazy(() => import('@/layouts/AppShell/AppShell.jsx'))
+const AcceptInvitePage = lazy(() => import('@/pages/invitations/AcceptInvitePage/AcceptInvitePage.jsx'))
+const LoginPage = lazy(() => import('@/pages/auth/LoginPage/LoginPage.jsx'))
+const RegisterPage = lazy(() => import('@/pages/auth/RegisterPage/RegisterPage.jsx'))
+const VerifyEmailPage = lazy(() => import('@/pages/auth/VerifyEmailPage/VerifyEmailPage.jsx'))
+const DashboardHomePage = lazy(() => import('@/pages/home/DashboardHomePage/DashboardHomePage.jsx'))
+const ClientProfilePage = lazy(() => import('@/pages/patients/ClientProfilePage/ClientProfilePage.jsx'))
+const PatientsPage = lazy(() => import('@/pages/patients/PatientsPage/PatientsPage.jsx'))
+const MealPlansPage = lazy(() => import('@/pages/nutrition/MealPlansPage/MealPlansPage.jsx'))
+const NutritionPlanPage = lazy(() => import('@/pages/nutrition/NutritionPlanPage/NutritionPlanPage.jsx'))
+const MessagesPage = lazy(() => import('@/pages/messages/MessagesPage/MessagesPage.jsx'))
+const ProfessionalProfilePage = lazy(() => import('@/pages/professionals/ProfessionalProfilePage/ProfessionalProfilePage.jsx'))
+const ClientProgressPage = lazy(() => import('@/pages/progress/ClientProgressPage/ClientProgressPage.jsx'))
+const ProfileSettingsPage = lazy(() => import('@/pages/settings/ProfileSettingsPage/ProfileSettingsPage.jsx'))
+const WorkoutPlanPage = lazy(() => import('@/pages/workouts/WorkoutPlanPage/WorkoutPlanPage.jsx'))
+const WorkoutProgramsPage = lazy(() => import('@/pages/workouts/WorkoutProgramsPage/WorkoutProgramsPage.jsx'))
+
 export default function AppRoutes() {
   return (
-    <Routes>
+    <Suspense fallback={<RouteFallback />}>
+      <Routes>
       <Route path="/" element={<Navigate to="/dashboard" replace />} />
       <Route path="/login" element={<LoginPage />} />
       <Route path="/register" element={<RegisterPage />} />
@@ -50,6 +54,7 @@ export default function AppRoutes() {
       </Route>
 
       <Route path="*" element={<Navigate to="/dashboard" replace />} />
-    </Routes>
+      </Routes>
+    </Suspense>
   )
 }

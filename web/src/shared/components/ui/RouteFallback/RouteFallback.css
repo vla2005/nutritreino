@@ -1,0 +1,28 @@
+.route-fallback {
+  display: grid;
+  min-height: 100dvh;
+  place-content: center;
+  justify-items: center;
+  gap: 12px;
+  background: var(--layout-bg);
+  color: var(--text-secondary);
+}
+
+.route-fallback span {
+  width: 34px;
+  height: 34px;
+  border: 3px solid var(--border-color);
+  border-top-color: #2fa66f;
+  border-radius: 999px;
+  animation: route-fallback-spin 0.75s linear infinite;
+}
+
+.route-fallback p {
+  margin: 0;
+  font-size: 14px;
+  font-weight: 700;
+}
+
+@keyframes route-fallback-spin {
+  to { transform: rotate(360deg); }
+}
