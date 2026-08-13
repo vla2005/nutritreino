@@ -9,6 +9,7 @@ import { ProfessionalSummaryLine, SummaryLine } from '@/features/plans/component
 import '@/features/plans/styles/PlanEditor.css'
 import { listClients } from '@/services/clients.js'
 import { createWorkoutProgram, generateWorkoutProgramSuggestion, getWorkoutProgram, updateWorkoutProgram } from '@/services/workoutPrograms.js'
+import WorkoutDayCard from './components/WorkoutDayCard.jsx'
 import './WorkoutPlanPage.css'
 
 const defaultDays = [
@@ -510,74 +511,6 @@ export default function WorkoutPlanPage() {
   )
 }
 
-function WorkoutDayCard({ day, onUpdate, onRemove, onAddExercise, onUpdateExercise, onRemoveExercise, readOnly = false }) {
-  const exerciseCount = day.exercises.filter((exercise) => exercise.name.trim()).length
-
-  return (
-    <article className="plan-meal-card">
-      <header className="plan-meal-header workout-day-header" onClick={() => onUpdate({ expanded: !day.expanded })}>
-        <div className="plan-meal-title">
-          <span aria-hidden="true"><DumbbellIcon /></span>
-          <div>
-            <h3>{day.name || 'Sem nome'}</h3>
-            <p>{day.weekDays || 'Dias não definidos'} <span>-</span> {exerciseCount} exercício(s)</p>
-          </div>
-        </div>
-
-        <div className="plan-meal-actions">
-          {!readOnly ? <button type="button" onClick={(event) => { event.stopPropagation(); onRemove() }} aria-label="Remover dia de treino"><TrashIcon /></button> : null}
-          <span className="workout-chevron-indicator" aria-hidden="true">
-            <ChevronIcon open={day.expanded} />
-          </span>
-        </div>
-      </header>
-
-      <div className={`plan-meal-body ${day.expanded ? 'is-open' : ''}`} aria-hidden={!day.expanded}>
-        <div className="plan-meal-body-inner">
-          <div className="plan-meal-fields">
-            <PlanField label="Nome do Dia">
-              <input placeholder='Ex: Treino A - Peito e Tríceps' value={day.name} disabled={readOnly} onChange={(event) => onUpdate({ name: event.target.value })} />
-            </PlanField>
-            <PlanField label="Dias da Semana">
-              <input placeholder='Ex: Segunda e quinta' value={day.weekDays} disabled={readOnly} onChange={(event) => onUpdate({ weekDays: event.target.value })} />
-            </PlanField>
-          </div>
-
-          <div className="workout-exercise-block">
-            <label>Exercícios</label>
-            <div className="workout-exercise-head" aria-hidden="true">
-              <span>Exercício</span>
-              <span>Séries</span>
-              <span>Reps</span>
-              <span>Descanso</span>
-              <span>Observação</span>
-            </div>
-
-            {day.exercises.map((exercise) => (
-              <div className="workout-exercise-row" key={exercise.id}>
-                <input value={exercise.name} disabled={readOnly} placeholder="Nome do exercício" onChange={(event) => onUpdateExercise(exercise.id, { name: event.target.value })} />
-                <input value={exercise.sets} disabled={readOnly} inputMode="numeric" onChange={(event) => onUpdateExercise(exercise.id, { sets: onlyNumbers(event.target.value) })} />
-                <input value={exercise.reps} disabled={readOnly} inputMode="numeric" onChange={(event) => onUpdateExercise(exercise.id, { reps: onlyNumbers(event.target.value) })} />
-                <label className="workout-rest-input">
-                  <input value={exercise.rest} disabled={readOnly} inputMode="numeric" onChange={(event) => onUpdateExercise(exercise.id, { rest: onlyNumbers(event.target.value) })} />
-                  <span>s</span>
-                </label>
-                <input value={exercise.note} disabled={readOnly} placeholder="Cadência, variação..." onChange={(event) => onUpdateExercise(exercise.id, { note: event.target.value })} />
-                {!readOnly ? <button type="button" onClick={() => onRemoveExercise(exercise.id)} aria-label="Remover exercício"><TrashIcon /></button> : null}
-              </div>
-            ))}
-
-            <button type="button" className="plan-add-food" onClick={onAddExercise} hidden={readOnly}>
-              <PlusIcon />
-              Adicionar Exercício
-            </button>
-          </div>
-        </div>
-      </div>
-    </article>
-  )
-}
-
 
 function mergePatients(current, incoming) {
   const map = new Map()
@@ -653,10 +586,6 @@ function formatShortDate(value) {
   return `${day}/${month}`
 }
 
-function onlyNumbers(value) {
-  return value.replace(/[^\d]/g, '')
-}
-
 function ArrowLeftIcon() {
   return <svg viewBox="0 0 24 24" fill="none" aria-hidden="true"><path d="M19 12H5M11 18l-6-6 6-6" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" /></svg>
 }
@@ -667,18 +596,6 @@ function PlusIcon() {
 
 function SaveIcon() {
   return <svg viewBox="0 0 24 24" fill="none" aria-hidden="true"><path d="M6 3h10l2 2v16H6V3Z" stroke="currentColor" strokeWidth="1.8" strokeLinejoin="round" /><path d="M9 3v6h6V3M9 18v-5h6v5" stroke="currentColor" strokeWidth="1.8" strokeLinejoin="round" /></svg>
-}
-
-function TrashIcon() {
-  return <svg viewBox="0 0 24 24" fill="none" aria-hidden="true"><path d="M5 7h14M10 11v6M14 11v6M9 7l1-3h4l1 3M7 7l1 14h8l1-14" stroke="currentColor" strokeWidth="1.7" strokeLinecap="round" strokeLinejoin="round" /></svg>
-}
-
-function ChevronIcon({ open }) {
-  return <svg className={open ? 'is-open' : ''} viewBox="0 0 24 24" fill="none" aria-hidden="true"><path d="m8 10 4 4 4-4" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" /></svg>
-}
-
-function DumbbellIcon() {
-  return <svg viewBox="0 0 24 24" fill="none" aria-hidden="true"><path d="m6.5 7.5 10 10M4 10l3-3M7 13l3-3M14 7l3-3M17 10l3-3M4.5 13.5l6-6M13.5 19.5l6-6" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round" /></svg>
 }
 
 function SparkIcon() {
