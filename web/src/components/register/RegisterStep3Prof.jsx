@@ -1,5 +1,5 @@
 import { useEffect, useMemo, useRef, useState } from 'react'
-import Button from '../ui/Button.jsx'
+import Button from '@/shared/components/ui/Button/Button.jsx'
 
 const outputSize = 360
 

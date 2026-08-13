@@ -1,7 +1,7 @@
 import { useEffect, useMemo, useState } from 'react'
 import { Link, useNavigate } from 'react-router-dom'
 import PatientFormModal from '../../components/patients/PatientFormModal.jsx'
-import Pagination from '../../components/ui/Pagination.jsx'
+import Pagination from '@/shared/components/ui/Pagination/Pagination.jsx'
 import { useAuth } from '../../composables/useAuth.js'
 import { useToast } from '../../composables/useToast.jsx'
 import { clientErrorToFormErrors, inviteClient, listClients, validateClientPayload } from '../../services/clients.js'

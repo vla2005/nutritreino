@@ -1,7 +1,7 @@
 import { useEffect, useMemo, useState } from 'react'
 import { Link, useNavigate, useSearchParams } from 'react-router-dom'
-import Button from '../components/ui/Button.jsx'
-import PasswordInput from '../components/ui/PasswordInput.jsx'
+import Button from '@/shared/components/ui/Button/Button.jsx'
+import PasswordInput from '@/shared/components/ui/PasswordInput/PasswordInput.jsx'
 import { useToast } from '../composables/useToast.jsx'
 import { acceptClientInvitation, getClientInvitation, validateAcceptInvitePassword } from '../services/invitations.js'
 

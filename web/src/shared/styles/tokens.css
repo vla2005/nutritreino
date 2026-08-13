@@ -1,0 +1,20 @@
+:root {
+  --font-text: 'Inter', system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+  --font-title: 'Plus Jakarta Sans', 'Inter', system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+  --font-number: 'Inter', system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+  --layout-bg: #0d1117;
+  --panel-bg: #161b22;
+  --panel-bg-strong: #1c2128;
+  --panel-muted: #21262d;
+  --border-color: rgba(255, 255, 255, 0.08);
+  --border-soft: rgba(255, 255, 255, 0.06);
+  --text-primary: #e6edf3;
+  --text-secondary: #8b949e;
+  --text-muted: #484f58;
+  --hover-bg: rgba(255, 255, 255, 0.05);
+  --hover-strong: rgba(255, 255, 255, 0.08);
+  --accent-soft: rgba(59, 130, 246, 0.12);
+  --danger-soft: rgba(239, 68, 68, 0.08);
+  color-scheme: dark;
+  font-family: var(--font-text);
+}

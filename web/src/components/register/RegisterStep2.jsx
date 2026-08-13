@@ -1,6 +1,6 @@
-import Button from '../ui/Button.jsx'
-import Input from '../ui/Input.jsx'
-import PasswordInput from '../ui/PasswordInput.jsx'
+import Button from '@/shared/components/ui/Button/Button.jsx'
+import Input from '@/shared/components/ui/Input/Input.jsx'
+import PasswordInput from '@/shared/components/ui/PasswordInput/PasswordInput.jsx'
 
 const specialities = [
   { value: 'nutritionist', label: 'Nutricionista' },

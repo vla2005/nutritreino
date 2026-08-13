@@ -4,9 +4,9 @@ import { Link, useNavigate } from 'react-router-dom'
 import { useAuth } from '../../composables/useAuth.js'
 import { useToast } from '../../composables/useToast.jsx'
 import { API_URL } from '../../config/api.js'
-import Button from '../ui/Button.jsx'
-import Input from '../ui/Input.jsx'
-import PasswordInput from '../ui/PasswordInput.jsx'
+import Button from '@/shared/components/ui/Button/Button.jsx'
+import Input from '@/shared/components/ui/Input/Input.jsx'
+import PasswordInput from '@/shared/components/ui/PasswordInput/PasswordInput.jsx'
 
 export default function LoginForm() {
   const navigate = useNavigate()
