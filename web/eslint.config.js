@@ -31,7 +31,10 @@ export default [
       'react-hooks/immutability': 'warn',
       'react-hooks/refs': 'warn',
       'react-hooks/set-state-in-effect': 'warn',
-      'react-refresh/only-export-components': 'warn',
+      'react-refresh/only-export-components': ['warn', {
+        allowConstantExport: true,
+        allowExportNames: ['useToast', 'useVideoCall'],
+      }],
     },
   },
 ]

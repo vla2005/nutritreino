@@ -1,8 +1,8 @@
+import { AppleIcon, DumbbellIcon, PathIcon } from '@/shared/components/icons/NavigationIcons.jsx'
+
 export function useIcons() {
   return { icons }
 }
-
-const iconClass = 'h-[18px] w-[18px]'
 
 const icons = {
   home: <PathIcon d="M3 12l9-9 9 9M5 10v10h14V10" />,
@@ -14,34 +14,4 @@ const icons = {
   workouts: <DumbbellIcon />,
   diet: <AppleIcon />,
   progress: <PathIcon d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z" />,
-}
-
-function PathIcon({ d }) {
-  return (
-    <svg className={iconClass} xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth="2">
-      <path strokeLinecap="round" strokeLinejoin="round" d={d} />
-    </svg>
-  )
-}
-
-function DumbbellIcon() {
-  return (
-    <svg className={iconClass} xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
-      <path d="M6 8V16" stroke="currentColor" strokeWidth="2" strokeLinecap="round" />
-      <path d="M18 8V16" stroke="currentColor" strokeWidth="2" strokeLinecap="round" />
-      <path d="M4 10V14" stroke="currentColor" strokeWidth="2" strokeLinecap="round" />
-      <path d="M20 10V14" stroke="currentColor" strokeWidth="2" strokeLinecap="round" />
-      <path d="M6 12H18" stroke="currentColor" strokeWidth="2" strokeLinecap="round" />
-    </svg>
-  )
-}
-
-function AppleIcon() {
-  return (
-    <svg className={iconClass} xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
-      <path d="M12 7c1.4-2.1 3.2-2.9 5.4-2.4" stroke="currentColor" strokeWidth="1.9" strokeLinecap="round" />
-      <path d="M12 7c-1.5-2.3-3.4-2.9-5.5-1.8C4.2 6.4 3.4 9.5 4.3 13c1.2 4.6 4.1 7.3 6.4 6.2.8-.4 1.8-.4 2.6 0 2.3 1.1 5.2-1.6 6.4-6.2.9-3.5.1-6.6-2.2-7.8-2.1-1.1-4-.5-5.5 1.8Z" stroke="currentColor" strokeWidth="1.9" strokeLinecap="round" strokeLinejoin="round" />
-      <path d="M12 6.5c.1-1.8.9-3 2.4-3.5" stroke="currentColor" strokeWidth="1.9" strokeLinecap="round" />
-    </svg>
-  )
 }

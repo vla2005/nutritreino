@@ -114,7 +114,7 @@ export function VideoCallProvider({ children }) {
       throw new Error('Seu navegador nao permite chamadas de video neste dispositivo.')
     }
 
-    let stream = null
+    let stream
 
     try {
       stream = await navigator.mediaDevices.getUserMedia(callMediaConstraints)
@@ -366,7 +366,7 @@ export function VideoCallProvider({ children }) {
     return () => {
       getEcho().leave(`users.${user.uuid}`)
     }
-  }, [cleanup, createOffer, handleAnswer, handleIceCandidate, handleOffer, toast, user?.uuid])
+  }, [cleanup, clearRingTimeout, createOffer, handleAnswer, handleIceCandidate, handleOffer, toast, user?.uuid])
 
   useEffect(() => {
     function handleStart(event) {
