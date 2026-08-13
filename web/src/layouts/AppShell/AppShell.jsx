@@ -1,16 +1,18 @@
 import { useEffect, useState } from 'react'
 import { Outlet } from 'react-router-dom'
-import { useAuth } from '../composables/useAuth.js'
-import { useTheme } from '../composables/useTheme.js'
-import Sidebar from '../components/Sidebar.jsx'
-import MobileBottomNav from '../components/MobileBottomNav.jsx'
-import { VideoCallProvider } from '../components/VideoCallProvider.jsx'
-import { joinOnlineUsers, leaveOnlineUsers } from '../services/echo.js'
+import { useAuth } from '@/composables/useAuth.js'
+import { useTheme } from '@/composables/useTheme.js'
+import { VideoCallProvider } from '@/components/VideoCallProvider.jsx'
+import { joinOnlineUsers, leaveOnlineUsers } from '@/services/echo.js'
+import MobileBottomNav from './components/MobileBottomNav.jsx'
+import Sidebar from './components/Sidebar.jsx'
+import './AppShell.css'
 
-export default function MainLayout() {
+export default function AppShell() {
   const [sidebarCollapsed, setSidebarCollapsed] = useState(false)
   const [mobileSidebarOpen, setMobileSidebarOpen] = useState(false)
   const { fetchMe, user } = useAuth()
+  const userUuid = user?.uuid
   useTheme()
 
   useEffect(() => {
@@ -18,14 +20,14 @@ export default function MainLayout() {
   }, [fetchMe])
 
   useEffect(() => {
-    if (!user) return undefined
+    if (!userUuid) return undefined
 
     joinOnlineUsers()
 
     return () => {
       leaveOnlineUsers()
     }
-  }, [user?.uuid])
+  }, [userUuid])
 
   return (
     <div className="dashboard-layout flex min-h-[100dvh]">

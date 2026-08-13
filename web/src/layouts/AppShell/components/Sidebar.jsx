@@ -1,9 +1,9 @@
 import { useEffect, useState } from 'react'
 import { Link, NavLink, useNavigate } from 'react-router-dom'
-import { useAuth } from '../composables/useAuth.js'
-import { useIcons } from '../composables/useIcons.jsx'
-import { listConversations } from '../services/messages.js'
-import { normalizeAvatarUrl } from '../utils/avatar.js'
+import { useAuth } from '@/composables/useAuth.js'
+import { useIcons } from '@/composables/useIcons.jsx'
+import { listConversations } from '@/services/messages.js'
+import { normalizeAvatarUrl } from '@/utils/avatar.js'
 
 export default function Sidebar({ collapsed, mobileOpen = false, onCloseMobile, onToggle }) {
   const navigate = useNavigate()

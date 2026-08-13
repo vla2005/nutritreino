@@ -1,8 +1,8 @@
 import { useEffect, useState } from 'react'
 import { NavLink } from 'react-router-dom'
-import { useAuth } from '../composables/useAuth.js'
-import { useIcons } from '../composables/useIcons.jsx'
-import { listConversations } from '../services/messages.js'
+import { useAuth } from '@/composables/useAuth.js'
+import { useIcons } from '@/composables/useIcons.jsx'
+import { listConversations } from '@/services/messages.js'
 
 export default function MobileBottomNav() {
   const { role, user } = useAuth()
