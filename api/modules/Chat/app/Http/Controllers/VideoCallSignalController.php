@@ -8,10 +8,15 @@ use Illuminate\Validation\Rule;
 use Modules\Chat\Events\VideoCallSignal;
 use Modules\Chat\Models\Conversation;
 use Modules\Chat\Services\ConversationAccessService;
+use Modules\Chat\Services\MessageService;
+use Modules\Chat\Transformers\MessageResource;
 
 class VideoCallSignalController extends Controller
 {
-    public function __construct(private readonly ConversationAccessService $access) {}
+    public function __construct(
+        private readonly ConversationAccessService $access,
+        private readonly MessageService $messages,
+    ) {}
 
     public function store(Request $request, Conversation $conversation)
     {
@@ -56,6 +61,28 @@ class VideoCallSignalController extends Controller
             payload: $validated['payload'] ?? [],
         ))->toOthers();
 
-        return response()->json(['data' => ['sent' => true]]);
+        $message = $this->createCallHistoryMessage($conversation, $request, $validated['type'], $validated['payload'] ?? []);
+
+        return response()->json([
+            'data' => [
+                'sent' => true,
+                'message' => $message ? (new MessageResource($message))->resolve($request) : null,
+            ],
+        ]);
+    }
+
+    private function createCallHistoryMessage(Conversation $conversation, Request $request, string $type, array $payload): mixed
+    {
+        if (! in_array($type, ['ended', 'rejected'], true)) {
+            return null;
+        }
+
+        $status = match ($type) {
+            'ended' => 'ended',
+            'rejected' => $payload['reason'] ?? 'rejected',
+            default => $type,
+        };
+
+        return $this->messages->createVideoCallHistory($conversation, $request->user(), (string) $status);
     }
 }

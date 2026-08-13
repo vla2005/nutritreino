@@ -1,5 +1,7 @@
 import { useEffect, useMemo, useState } from 'react'
 import { Link, useLocation, useNavigate, useParams } from 'react-router-dom'
+import AiLoadingIcon from '../../components/ui/AiLoadingIcon.jsx'
+import AiLoadingOverlay from '../../components/ui/AiLoadingOverlay.jsx'
 import { useAuth } from '../../composables/useAuth.js'
 import { useToast } from '../../composables/useToast.jsx'
 import { listClients } from '../../services/clients.js'
@@ -322,6 +324,8 @@ export default function WorkoutPlanForm() {
 
   return (
     <div className="nutrition-plan-page">
+      {generatingAi ? <AiLoadingOverlay text="IA montando o rascunho do treino" /> : null}
+
       <header className="plan-page-header">
         <button type="button" className="plan-back-button" onClick={() => navigate(-1)} aria-label="Voltar">
           <ArrowLeftIcon />
@@ -395,8 +399,17 @@ export default function WorkoutPlanForm() {
               <div className="ai-plan-head">
                 <span aria-hidden="true"><SparkIcon /></span>
                 <div>
-                  <h2>Gerar rascunho com IA</h2>
-                  <p>Informe preferências, limitações e estrutura desejada. O treino só será criado depois da sua revisão.</p>
+                  <div className="ai-plan-title-row">
+                    <h2>Copiloto de treino</h2>
+                    <small>Gemini</small>
+                  </div>
+                  <p>Rascunho editável para revisar antes de salvar.</p>
+                  <div className="ai-plan-meta" aria-label="Contexto usado pela IA">
+                    <span>frequência</span>
+                    <span>equipamentos</span>
+                    <span>limitações</span>
+                    <span>objetivo</span>
+                  </div>
                 </div>
               </div>
               <div className="ai-plan-grid">
@@ -418,8 +431,8 @@ export default function WorkoutPlanForm() {
               </div>
               <div className="ai-plan-actions">
                 <button type="button" className="ai-generate-button" onClick={generateWithAi} disabled={generatingAi}>
-                  <SparkIcon />
-                  {generatingAi ? 'Gerando rascunho...' : 'Gerar com IA'}
+                  {generatingAi ? <AiLoadingIcon /> : <SparkIcon />}
+                  {generatingAi ? 'Gerando' : 'Gerar rascunho'}
                 </button>
                 <button type="button" className="ai-clear-button" onClick={clearAiDraft} disabled={generatingAi}>
                   Limpar rascunho

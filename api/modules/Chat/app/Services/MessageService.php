@@ -42,6 +42,25 @@ class MessageService
         });
     }
 
+    public function createVideoCallHistory(Conversation $conversation, User $sender, string $status): Message
+    {
+        return DB::transaction(function () use ($conversation, $sender, $status): Message {
+            $message = $conversation->messages()->create([
+                'sender_id' => $sender->id,
+                'encrypted_body' => Crypt::encryptString($status),
+                'type' => 'video_call',
+            ]);
+
+            $conversation->forceFill(['last_message_at' => now()])->save();
+
+            $message->load('sender', 'conversation.firstUser', 'conversation.secondUser');
+
+            broadcast(new MessageSent($message))->toOthers();
+
+            return $message;
+        });
+    }
+
     private function storeEncryptedAttachment(Conversation $conversation, UploadedFile $attachment): array
     {
         $disk = 'local';

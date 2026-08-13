@@ -7,6 +7,19 @@ import { normalizeAvatarUrl } from '../utils/avatar.js'
 
 const VideoCallContext = createContext(null)
 const rtcConfig = { iceServers: [{ urls: 'stun:stun.l.google.com:19302' }] }
+const CALL_RING_TIMEOUT_MS = 45000
+const callMediaConstraints = {
+  audio: {
+    echoCancellation: true,
+    noiseSuppression: true,
+    autoGainControl: true,
+  },
+  video: {
+    facingMode: 'user',
+    width: { ideal: 1280 },
+    height: { ideal: 720 },
+  },
+}
 
 export function VideoCallProvider({ children }) {
   const { user } = useAuth()
@@ -28,6 +41,7 @@ export function VideoCallProvider({ children }) {
   const screenAudioSenderRef = useRef(null)
   const pendingIceRef = useRef([])
   const endingRef = useRef(false)
+  const ringTimeoutRef = useRef(null)
 
   useEffect(() => {
     callRef.current = call
@@ -46,8 +60,16 @@ export function VideoCallProvider({ children }) {
     })
   }, [])
 
+  const clearRingTimeout = useCallback(() => {
+    if (ringTimeoutRef.current) {
+      window.clearTimeout(ringTimeoutRef.current)
+      ringTimeoutRef.current = null
+    }
+  }, [])
+
   const cleanup = useCallback((notifyPeer = false, nextStatus = 'ended') => {
     const activeCall = callRef.current
+    clearRingTimeout()
 
     if (notifyPeer && activeCall && !endingRef.current) {
       endingRef.current = true
@@ -82,16 +104,32 @@ export function VideoCallProvider({ children }) {
       }
       endingRef.current = false
     }, 900)
-  }, [signal])
+  }, [clearRingTimeout, signal])
 
   const ensureLocalStream = useCallback(async () => {
     if (localStreamRef.current) return localStreamRef.current
 
-    const stream = await navigator.mediaDevices.getUserMedia({ audio: true, video: true })
+    if (!navigator.mediaDevices?.getUserMedia) {
+      throw new Error('Seu navegador nao permite chamadas de video neste dispositivo.')
+    }
+
+    let stream = null
+
+    try {
+      stream = await navigator.mediaDevices.getUserMedia(callMediaConstraints)
+    } catch (error) {
+      if (!canFallbackToAudioOnly(error)) throw error
+
+      stream = await navigator.mediaDevices.getUserMedia({ audio: callMediaConstraints.audio, video: false })
+      toast.info('Nao foi possivel iniciar a camera. Voce entrou apenas com audio.')
+    }
+
     localStreamRef.current = stream
     setLocalPreviewStream(stream)
+    setMicEnabled(stream.getAudioTracks().some((track) => track.enabled))
+    setCameraEnabled(stream.getVideoTracks().some((track) => track.enabled))
     return stream
-  }, [])
+  }, [toast])
 
   const ensurePeerConnection = useCallback(async () => {
     if (pcRef.current) return pcRef.current
@@ -151,12 +189,26 @@ export function VideoCallProvider({ children }) {
         callId: nextCall.id,
         type: 'invite',
       })
+      clearRingTimeout()
+      ringTimeoutRef.current = window.setTimeout(() => {
+        const activeCall = callRef.current
+        if (!activeCall || activeCall.id !== nextCall.id || activeCall.status !== 'ringing') return
+
+        sendCallSignal(activeCall.conversationUuid, {
+          callId: activeCall.id,
+          type: 'rejected',
+          payload: { reason: 'no-answer' },
+        }).catch(() => {})
+
+        cleanup(false, 'missed')
+      }, CALL_RING_TIMEOUT_MS)
     } catch (err) {
+      clearRingTimeout()
       callRef.current = null
       setCall(null)
       toast.warning(err.message)
     }
-  }, [incoming, toast])
+  }, [clearRingTimeout, cleanup, incoming, toast])
 
   const acceptIncoming = useCallback(async () => {
     if (!incoming) return
@@ -169,7 +221,7 @@ export function VideoCallProvider({ children }) {
       setIncoming(null)
       await signal('accepted', {}, incoming)
     } catch (err) {
-      toast.warning('Permita acesso a camera e ao microfone para entrar na chamada.')
+      toast.warning(mediaErrorMessage(err))
       await signal('rejected', { reason: 'media-denied' }, incoming).catch(() => {})
       cleanup(false)
     }
@@ -251,17 +303,28 @@ export function VideoCallProvider({ children }) {
           return
         }
 
+        if (event.type === 'rejected' && incomingRef.current?.id === event.call_id) {
+          setIncoming(null)
+          if (event.payload?.reason === 'no-answer') {
+            toast.info('Chamada perdida.')
+          }
+          return
+        }
+
         if (callRef.current?.id !== event.call_id) return
 
         if (event.type === 'accepted') {
+          clearRingTimeout()
           setCall((current) => current ? { ...current, status: 'connecting' } : current)
           await createOffer()
           return
         }
 
         if (event.type === 'rejected') {
-          toast.info(event.payload?.reason === 'busy' ? 'A pessoa esta em outra chamada.' : 'Chamada recusada.')
-          cleanup(false, 'rejected')
+          clearRingTimeout()
+          const reason = event.payload?.reason
+          toast.info(reason === 'busy' ? 'A pessoa esta em outra chamada.' : reason === 'no-answer' ? 'Chamada perdida.' : 'Chamada recusada.')
+          cleanup(false, reason === 'no-answer' ? 'missed' : 'rejected')
           return
         }
 
@@ -313,6 +376,8 @@ export function VideoCallProvider({ children }) {
     return () => window.removeEventListener('video-call:start', handleStart)
   }, [startCall])
 
+  useEffect(() => () => clearRingTimeout(), [clearRingTimeout])
+
   useEffect(() => {
     function handleBeforeUnload() {
       if (callRef.current) signal('ended').catch(() => {})
@@ -332,11 +397,39 @@ export function VideoCallProvider({ children }) {
 
   const toggleCamera = useCallback(() => {
     const enabled = !cameraEnabled
-    localStreamRef.current?.getVideoTracks().forEach((track) => {
+    const videoTracks = localStreamRef.current?.getVideoTracks() || []
+
+    if (enabled && !videoTracks.length) {
+      navigator.mediaDevices?.getUserMedia({ video: callMediaConstraints.video })
+        .then(async (stream) => {
+          const cameraTrack = stream.getVideoTracks()[0]
+          const sender = pcRef.current?.getSenders().find((item) => item.track?.kind === 'video')
+
+          if (localStreamRef.current && cameraTrack) {
+            localStreamRef.current.addTrack(cameraTrack)
+            setLocalPreviewStream(localStreamRef.current)
+          }
+
+          if (sender && cameraTrack) {
+            await sender.replaceTrack(cameraTrack)
+          } else if (pcRef.current && localStreamRef.current && cameraTrack) {
+            pcRef.current.addTrack(cameraTrack, localStreamRef.current)
+          }
+
+          setCameraEnabled(Boolean(cameraTrack))
+        })
+        .catch((error) => {
+          toast.warning(mediaErrorMessage(error))
+          setCameraEnabled(false)
+        })
+      return
+    }
+
+    videoTracks.forEach((track) => {
       track.enabled = enabled
     })
     setCameraEnabled(enabled)
-  }, [cameraEnabled])
+  }, [cameraEnabled, toast])
 
   const stopScreenShare = useCallback(async () => {
     if (!screenStreamRef.current) return
@@ -560,8 +653,11 @@ function CallWindow({ call, remoteStream, localStream, micEnabled, cameraEnabled
   const stageRef = useRef(null)
   const localRef = useRef(null)
   const dragRef = useRef(null)
+  const windowDragRef = useRef(null)
   const [maximized, setMaximized] = useState(false)
   const [localPosition, setLocalPosition] = useState(null)
+  const [windowPosition, setWindowPosition] = useState(null)
+  const [localPreviewHidden, setLocalPreviewHidden] = useState(false)
 
   useEffect(() => {
     if (remoteVideoRef.current) remoteVideoRef.current.srcObject = remoteStream
@@ -569,7 +665,7 @@ function CallWindow({ call, remoteStream, localStream, micEnabled, cameraEnabled
 
   useEffect(() => {
     if (localVideoRef.current) localVideoRef.current.srcObject = localStream
-  }, [localStream])
+  }, [localPreviewHidden, localStream])
 
   useEffect(() => {
     if (!call) return undefined
@@ -588,11 +684,32 @@ function CallWindow({ call, remoteStream, localStream, micEnabled, cameraEnabled
 
   useEffect(() => {
     if (!call) exitVideoFullscreen().catch(() => {})
+    if (!call) setWindowPosition(null)
+    if (!call) setLocalPreviewHidden(false)
   }, [call])
 
   useEffect(() => {
+    if (!call || maximized) return undefined
+
+    function handleResize() {
+      setWindowPosition((current) => clampWindowPosition(current, windowRef.current))
+    }
+
+    window.addEventListener('resize', handleResize)
+    window.addEventListener('orientationchange', handleResize)
+
+    return () => {
+      window.removeEventListener('resize', handleResize)
+      window.removeEventListener('orientationchange', handleResize)
+    }
+  }, [call, maximized])
+
+  useEffect(() => {
     function handleFullscreenChange() {
-      if (!hasVideoFullscreen()) setMaximized(false)
+      if (!hasVideoFullscreen()) {
+        setMaximized(false)
+        unlockOrientation().catch(() => {})
+      }
     }
 
     document.addEventListener('fullscreenchange', handleFullscreenChange)
@@ -609,9 +726,14 @@ function CallWindow({ call, remoteStream, localStream, micEnabled, cameraEnabled
 
     if (isMobileViewport()) {
       if (nextMaximized) {
-        if (!remoteVideoRef.current) return
+        if (!windowRef.current) return
         setMaximized(true)
-        await requestVideoFullscreen(remoteVideoRef.current).catch(() => {
+
+        await requestNativeVideoFullscreen(remoteVideoRef.current)
+          .catch(() => requestCallFullscreen(windowRef.current, remoteVideoRef.current))
+          .then(() => {
+          lockLandscape().catch(() => {})
+        }).catch(() => {
           setMaximized(false)
         })
         return
@@ -619,15 +741,58 @@ function CallWindow({ call, remoteStream, localStream, micEnabled, cameraEnabled
 
       setMaximized(false)
       await exitVideoFullscreen().catch(() => {})
+      await unlockOrientation().catch(() => {})
       return
     }
 
     setMaximized(nextMaximized)
   }
 
+  function startWindowDrag(event) {
+    if (maximized || !windowRef.current || shouldIgnoreWindowDrag(event.target)) return
+
+    event.preventDefault()
+
+    const rect = windowRef.current.getBoundingClientRect()
+
+    windowDragRef.current = {
+      pointerId: event.pointerId,
+      offsetX: event.clientX - rect.left,
+      offsetY: event.clientY - rect.top,
+    }
+
+    setWindowPosition({
+      x: rect.left,
+      y: rect.top,
+    })
+
+    window.addEventListener('pointermove', moveCallWindow)
+    window.addEventListener('pointerup', stopWindowDrag, { once: true })
+    window.addEventListener('pointercancel', stopWindowDrag, { once: true })
+  }
+
+  function moveCallWindow(event) {
+    const drag = windowDragRef.current
+    const element = windowRef.current
+    if (!drag || !element || event.pointerId !== drag.pointerId) return
+
+    setWindowPosition(clampWindowPoint({
+      x: event.clientX - drag.offsetX,
+      y: event.clientY - drag.offsetY,
+    }, element.getBoundingClientRect()))
+  }
+
+  function stopWindowDrag() {
+    windowDragRef.current = null
+    window.removeEventListener('pointermove', moveCallWindow)
+    window.removeEventListener('pointerup', stopWindowDrag)
+    window.removeEventListener('pointercancel', stopWindowDrag)
+  }
+
   function startLocalDrag(event) {
     if (!stageRef.current || !localRef.current) return
     event.preventDefault()
+    event.stopPropagation()
 
     const stageRect = stageRef.current.getBoundingClientRect()
     const localRect = localRef.current.getBoundingClientRect()
@@ -668,7 +833,14 @@ function CallWindow({ call, remoteStream, localStream, micEnabled, cameraEnabled
   if (!call) return null
 
   return (
-    <section ref={windowRef} className={`video-call-window ${maximized ? 'is-maximized' : ''}`} aria-label="Chamada de video em andamento">
+    <section
+      ref={windowRef}
+      className={`video-call-window ${maximized ? 'is-maximized' : ''} ${windowPosition && !maximized ? 'is-positioned' : ''}`}
+      data-screen-sharing={remoteScreenSharing || screenSharing ? 'true' : undefined}
+      style={windowPosition && !maximized ? { left: `${windowPosition.x}px`, top: `${windowPosition.y}px` } : undefined}
+      onPointerDown={startWindowDrag}
+      aria-label="Chamada de video em andamento"
+    >
       <div ref={stageRef} className="video-call-stage">
         {remoteStream ? (
           <video ref={remoteVideoRef} autoPlay playsInline webkit-playsinline="true" />
@@ -680,17 +852,19 @@ function CallWindow({ call, remoteStream, localStream, micEnabled, cameraEnabled
           </div>
         )}
 
-        <div
-          ref={localRef}
-          className="video-call-local"
-          style={localPosition ? { left: `${localPosition.x}px`, top: `${localPosition.y}px` } : undefined}
-          onPointerDown={startLocalDrag}
-          role="button"
-          tabIndex={0}
-          aria-label="Mover sua camera"
-        >
-          {localStream ? <video ref={localVideoRef} autoPlay muted playsInline /> : <Avatar participant={call.participant} />}
-        </div>
+        {!localPreviewHidden ? (
+          <div
+            ref={localRef}
+            className="video-call-local"
+            style={localPosition ? { left: `${localPosition.x}px`, top: `${localPosition.y}px` } : undefined}
+            onPointerDown={startLocalDrag}
+            role="button"
+            tabIndex={0}
+            aria-label="Mover sua camera"
+          >
+            {localStream ? <video ref={localVideoRef} autoPlay muted playsInline /> : <Avatar participant={call.participant} />}
+          </div>
+        ) : null}
 
         {remoteScreenSharing ? <span className="video-call-screen-pill">Tela compartilhada</span> : null}
       </div>
@@ -710,6 +884,9 @@ function CallWindow({ call, remoteStream, localStream, micEnabled, cameraEnabled
           <button type="button" onClick={onShareScreen} className={screenSharing ? 'is-sharing' : ''} disabled={remoteScreenSharing && !screenSharing} aria-label="Compartilhar tela">
             <ScreenIcon />
           </button>
+          <button type="button" onClick={() => setLocalPreviewHidden((current) => !current)} className={localPreviewHidden ? 'is-off' : ''} aria-label={localPreviewHidden ? 'Mostrar sua camera' : 'Ocultar sua camera'}>
+            {localPreviewHidden ? <EyeIcon /> : <EyeOffIcon />}
+          </button>
           <button type="button" onClick={toggleMaximized} aria-label={maximized ? 'Restaurar chamada' : 'Maximizar chamada'}>
             {maximized ? <MinimizeIcon /> : <MaximizeIcon />}
           </button>
@@ -727,6 +904,28 @@ function clampLocalPosition(position, stage, local) {
   return clampPoint(position, stage.getBoundingClientRect(), local.getBoundingClientRect())
 }
 
+function shouldIgnoreWindowDrag(target) {
+  return Boolean(target?.closest?.('button, input, textarea, select, a, .video-call-local'))
+}
+
+function clampWindowPosition(position, element) {
+  if (!position || !element) return position
+  return clampWindowPoint(position, element.getBoundingClientRect())
+}
+
+function clampWindowPoint(point, rect) {
+  const gap = 10
+  const viewportWidth = window.innerWidth || document.documentElement.clientWidth
+  const viewportHeight = window.innerHeight || document.documentElement.clientHeight
+  const maxX = Math.max(gap, viewportWidth - rect.width - gap)
+  const maxY = Math.max(gap, viewportHeight - rect.height - gap)
+
+  return {
+    x: Math.min(Math.max(point.x, gap), maxX),
+    y: Math.min(Math.max(point.y, gap), maxY),
+  }
+}
+
 function clampPoint(point, stageRect, localRect) {
   const gap = 12
   const maxX = Math.max(gap, stageRect.width - localRect.width - gap)
@@ -742,16 +941,56 @@ function isMobileViewport() {
   return window.matchMedia?.('(max-width: 768px)').matches || window.innerWidth <= 768
 }
 
-async function requestVideoFullscreen(element) {
+async function requestCallFullscreen(element, fallbackVideo) {
   if (!element) return
 
   const request = element.requestFullscreen
     || element.webkitRequestFullscreen
     || element.msRequestFullscreen
-    || element.webkitEnterFullscreen
 
   if (request && !document.fullscreenElement && !document.webkitFullscreenElement) {
     await request.call(element)
+    return
+  }
+
+  await requestNativeVideoFullscreen(fallbackVideo)
+}
+
+async function requestNativeVideoFullscreen(video) {
+  if (!video) throw new Error('Video indisponivel para fullscreen.')
+
+  const previousControls = video.hasAttribute('controls')
+  const previousPlaysInline = video.hasAttribute('playsinline')
+  const previousWebkitPlaysInline = video.hasAttribute('webkit-playsinline')
+
+  video.setAttribute('controls', 'controls')
+  video.removeAttribute('playsinline')
+  video.removeAttribute('webkit-playsinline')
+  video.playsInline = false
+
+  const enterFullscreen = video.webkitEnterFullscreen || video.webkitRequestFullscreen || video.requestFullscreen
+
+  try {
+    if (!enterFullscreen || document.fullscreenElement || document.webkitFullscreenElement) {
+      throw new Error('Fullscreen nativo indisponivel.')
+    }
+
+    await enterFullscreen.call(video)
+  } finally {
+    if (!previousControls) {
+      window.setTimeout(() => {
+        video.removeAttribute('controls')
+      }, 600)
+    }
+
+    if (previousPlaysInline) {
+      video.setAttribute('playsinline', 'true')
+      video.playsInline = true
+    }
+
+    if (previousWebkitPlaysInline) {
+      video.setAttribute('webkit-playsinline', 'true')
+    }
   }
 }
 
@@ -763,10 +1002,51 @@ async function exitVideoFullscreen() {
   if (exit && (document.fullscreenElement || document.webkitFullscreenElement)) {
     await exit.call(document)
   }
+
+  await unlockOrientation().catch(() => {})
 }
 
 function hasVideoFullscreen() {
   return Boolean(document.fullscreenElement || document.webkitFullscreenElement)
+}
+
+async function lockLandscape() {
+  const orientation = screen.orientation
+  if (!orientation?.lock) return
+  await orientation.lock('landscape')
+}
+
+async function unlockOrientation() {
+  const orientation = screen.orientation
+  orientation?.unlock?.()
+}
+
+function canFallbackToAudioOnly(error) {
+  return [
+    'AbortError',
+    'NotFoundError',
+    'NotReadableError',
+    'OverconstrainedError',
+    'ConstraintNotSatisfiedError',
+  ].includes(error?.name)
+}
+
+function mediaErrorMessage(error) {
+  if (error?.name === 'NotAllowedError' || error?.name === 'SecurityError') {
+    return 'Permita acesso a camera e ao microfone para entrar na chamada.'
+  }
+
+  if (error?.name === 'NotFoundError') {
+    return 'Nao encontramos camera ou microfone disponivel neste dispositivo.'
+  }
+
+  if (error?.name === 'NotReadableError' || error?.name === 'AbortError') {
+    return 'Nao foi possivel iniciar a camera. Feche outros apps que possam estar usando a camera e tente novamente.'
+  }
+
+  if (error?.message) return error.message
+
+  return 'Nao foi possivel acessar camera e microfone.'
 }
 
 function Avatar({ participant }) {
@@ -785,6 +1065,7 @@ function Avatar({ participant }) {
 function statusLabel(status) {
   if (status === 'ringing') return 'Chamando...'
   if (status === 'connecting') return 'Conectando...'
+  if (status === 'missed') return 'Chamada perdida'
   if (status === 'rejected') return 'Chamada recusada'
   if (status === 'ended') return 'Chamada encerrada'
   return 'Em chamada'
@@ -840,4 +1121,12 @@ function MaximizeIcon() {
 
 function MinimizeIcon() {
   return <svg viewBox="0 0 24 24" fill="none" aria-hidden="true"><path d="M5 9h4V5M15 5v4h4M19 15h-4v4M9 19v-4H5" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" /></svg>
+}
+
+function EyeIcon() {
+  return <svg viewBox="0 0 24 24" fill="none" aria-hidden="true"><path d="M2.5 12s3.4-6 9.5-6 9.5 6 9.5 6-3.4 6-9.5 6-9.5-6-9.5-6Z" stroke="currentColor" strokeWidth="2" strokeLinejoin="round" /><path d="M12 15a3 3 0 1 0 0-6 3 3 0 0 0 0 6Z" stroke="currentColor" strokeWidth="2" /></svg>
+}
+
+function EyeOffIcon() {
+  return <svg viewBox="0 0 24 24" fill="none" aria-hidden="true"><path d="m4 4 16 16M9.9 5.4A10.3 10.3 0 0 1 12 5c6.1 0 9.5 7 9.5 7a15.1 15.1 0 0 1-2.2 3.1M6.1 6.9C3.7 8.6 2.5 12 2.5 12s3.4 7 9.5 7c1.5 0 2.8-.4 4-1M10.5 10.7a3 3 0 0 0 3.8 3.8" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" /></svg>
 }

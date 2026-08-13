@@ -3,7 +3,7 @@ import { useSearchParams } from 'react-router-dom'
 import { useAuth } from '../../composables/useAuth.js'
 import { useToast } from '../../composables/useToast.jsx'
 import { getEcho, getOnlineUserUuids, leaveConversationChannel } from '../../services/echo.js'
-import { getAttachmentBlob, getConversation, listConversations, sendMessage } from '../../services/messages.js'
+import { getAttachmentBlob, getConversation, listConversations, markConversationRead, sendMessage } from '../../services/messages.js'
 import { normalizeAvatarUrl } from '../../utils/avatar.js'
 import chatWallpaper from '../../assets/wpp.webp'
 
@@ -71,6 +71,7 @@ export default function Messages() {
             emitUnreadCount(next)
             return next
           })
+          markConversationRead(selectedUuid).catch(() => {})
         }
       } catch (err) {
         if (mounted) toast.warning(err.message)
@@ -96,10 +97,25 @@ export default function Messages() {
       const message = event.message
       setSelected((current) => current?.uuid === selectedUuid ? appendMessage(current, message) : current)
       setConversations((current) => {
-        const next = moveConversationToTop(current, selectedUuid, message, message.sender_uuid !== user?.uuid)
+        const next = moveConversationToTop(current, selectedUuid, message, false)
         emitUnreadCount(next)
         return next
       })
+
+      if (message.sender_uuid !== user?.uuid) {
+        markConversationRead(selectedUuid).catch(() => {})
+      }
+    })
+
+    channel.listen('.messages.read', (event) => {
+      if (event.reader_uuid === user?.uuid) return
+
+      setSelected((current) => current?.uuid === selectedUuid ? markMessagesRead(current, event.message_uuids, event.read_at) : current)
+      setConversations((current) => current.map((conversation) => (
+        conversation.uuid === selectedUuid
+          ? { ...conversation, latest_message: markMessageRead(conversation.latest_message, event.message_uuids, event.read_at) }
+          : conversation
+      )))
     })
 
     channel.listenForWhisper('typing', (event) => {
@@ -123,6 +139,27 @@ export default function Messages() {
   }, [selectedUuid, user?.uuid])
 
   useEffect(() => {
+    function handleCallHistoryMessage(event) {
+      const message = event.detail?.message
+      const conversationUuid = event.detail?.conversationUuid || message?.conversation_uuid
+      if (!message || !conversationUuid) return
+
+      setSelected((current) => current?.uuid === conversationUuid ? appendMessage(current, message) : current)
+      setConversations((current) => {
+        const next = moveConversationToTop(current, conversationUuid, message)
+        emitUnreadCount(next)
+        return next
+      })
+    }
+
+    window.addEventListener('video-call:history-message', handleCallHistoryMessage)
+
+    return () => {
+      window.removeEventListener('video-call:history-message', handleCallHistoryMessage)
+    }
+  }, [])
+
+  useEffect(() => {
     function handleOnlineUsers(event) {
       const nextOnlineUsers = new Set(event.detail?.uuids || [])
       setOnlineUsers(nextOnlineUsers)
@@ -139,7 +176,7 @@ export default function Messages() {
 
   useEffect(() => {
     listEndRef.current?.scrollIntoView({ behavior: 'smooth', block: 'end' })
-  }, [selected?.messages?.length])
+  }, [selected?.messages?.length, participantTyping])
 
   const filteredConversations = useMemo(() => conversations, [conversations])
   const canSend = Boolean(selected?.uuid) && (body.trim() || attachment) && !sending
@@ -243,7 +280,7 @@ export default function Messages() {
                   </span>
                   <span>
                     <strong>{conversation.participant?.name || 'Contato'}</strong>
-                    <small>{conversation.latest_message?.body || attachmentLabel(conversation.latest_message) || 'Sem mensagens ainda'}</small>
+                    <small>{conversationPreview(conversation.latest_message)}</small>
                   </span>
                   <span className="messages-conversation-meta">
                     <time>{formatConversationTime(conversation.last_message_at || conversation.updated_at)}</time>
@@ -282,7 +319,7 @@ export default function Messages() {
               <SearchIcon />
             </button>
             <button type="button" className="messages-menu-button messages-call-button" aria-label="Fazer chamada de video" disabled={!selected?.participant} onClick={startVideoCall}>
-              <PhoneIcon />
+              <VideoIcon />
             </button>
             <button type="button" className="messages-menu-button" aria-label="Mais opcoes">
               <DotsIcon />
@@ -300,6 +337,7 @@ export default function Messages() {
                   ? <DateSeparator key={item.key} label={item.label} />
                   : <MessageBubble key={item.message.uuid} message={item.message} mine={item.message.sender_uuid === user?.uuid} />
               ))}
+              {participantTyping ? <TypingBubble /> : null}
               <div ref={listEndRef} />
             </div>
           ) : (
@@ -334,10 +372,32 @@ export default function Messages() {
 }
 
 function MessageBubble({ message, mine }) {
+  if (message.type === 'video_call') {
+    return <VideoCallBubble message={message} mine={mine} />
+  }
+
   return (
     <article className={`messages-bubble ${mine ? 'is-mine' : ''}`}>
       {message.body ? <p>{message.body}</p> : null}
       {message.attachment ? <Attachment message={message} /> : null}
+      <span className="messages-bubble-meta">
+        <time>{formatMessageTime(message.created_at)}</time>
+        {mine ? <ReadReceipt read={Boolean(message.read_at)} /> : null}
+      </span>
+    </article>
+  )
+}
+
+function VideoCallBubble({ message, mine }) {
+  return (
+    <article className={`messages-bubble messages-call-history ${mine ? 'is-mine' : ''}`}>
+      <span className="messages-call-history-icon" aria-hidden="true">
+        <VideoIcon />
+      </span>
+      <span className="messages-call-history-content">
+        <strong>{callHistoryTitle(message, mine)}</strong>
+        <small>{callHistorySubtitle(message, mine)}</small>
+      </span>
       <span className="messages-bubble-meta">
         <time>{formatMessageTime(message.created_at)}</time>
         {mine ? <ReadReceipt read={Boolean(message.read_at)} /> : null}
@@ -461,6 +521,18 @@ function TypingLabel() {
   )
 }
 
+function TypingBubble() {
+  return (
+    <div className="messages-typing-bubble" aria-label="Contato digitando">
+      <span aria-hidden="true">
+        <i />
+        <i />
+        <i />
+      </span>
+    </div>
+  )
+}
+
 function StatusLabel({ participant }) {
   return (
     <span className={`messages-status-label ${participant?.is_online ? 'is-online' : ''}`}>
@@ -505,6 +577,21 @@ function appendMessage(conversation, message) {
   return { ...conversation, messages: [...(conversation.messages || []), message], latest_message: message, last_message_at: message.created_at }
 }
 
+function markMessagesRead(conversation, messageUuids = [], readAt = '') {
+  if (!conversation || !messageUuids?.length) return conversation
+
+  return {
+    ...conversation,
+    messages: (conversation.messages || []).map((message) => markMessageRead(message, messageUuids, readAt)),
+    latest_message: markMessageRead(conversation.latest_message, messageUuids, readAt),
+  }
+}
+
+function markMessageRead(message, messageUuids = [], readAt = '') {
+  if (!message || !messageUuids.includes(message.uuid)) return message
+  return { ...message, read_at: readAt || message.read_at }
+}
+
 function upsertConversation(conversations, conversation) {
   const exists = conversations.some((item) => item.uuid === conversation.uuid)
   if (!exists) return [conversation, ...conversations]
@@ -530,6 +617,30 @@ function attachmentLabel(message) {
   if (!message?.attachment) return ''
   if (message.type === 'image') return 'Foto enviada'
   return `${fileType(message.attachment.mime)} - ${formatBytes(message.attachment.size)}`
+}
+
+function conversationPreview(message) {
+  if (!message) return 'Sem mensagens ainda'
+  if (message.type === 'video_call') return 'Chamada de video'
+  return message.body || attachmentLabel(message) || 'Mensagem'
+}
+
+function callHistoryTitle(message, mine) {
+  if (message.body === 'ended') return 'Chamada de video'
+  if (message.body === 'no-answer') return mine ? 'Chamada nao atendida' : 'Chamada perdida'
+  if (message.body === 'busy') return mine ? 'Chamada nao atendida' : 'Chamada perdida'
+  if (message.body === 'media-denied') return mine ? 'Chamada nao completada' : 'Chamada perdida'
+  if (message.body === 'rejected') return mine ? 'Chamada recusada' : 'Chamada perdida'
+  return 'Chamada de video'
+}
+
+function callHistorySubtitle(message, mine) {
+  if (message.body === 'ended') return mine ? 'Voce encerrou a chamada' : 'Chamada encerrada'
+  if (message.body === 'no-answer') return mine ? 'Ninguem atendeu em 45 segundos' : 'Voce nao atendeu a chamada'
+  if (message.body === 'busy') return mine ? 'O contato estava em outra chamada' : 'Voce estava em outra chamada'
+  if (message.body === 'media-denied') return mine ? 'Nao foi possivel iniciar camera ou microfone' : 'O contato nao conseguiu entrar'
+  if (message.body === 'rejected') return mine ? 'O contato recusou a chamada' : 'Voce recusou a chamada'
+  return mine ? 'Chamada enviada' : 'Chamada recebida'
 }
 
 function fileMeta(attachment) {
@@ -622,8 +733,8 @@ function SearchIcon() {
   return <svg viewBox="0 0 24 24" fill="none" aria-hidden="true"><path d="m21 21-4.2-4.2M10.8 18a7.2 7.2 0 1 1 0-14.4 7.2 7.2 0 0 1 0 14.4Z" stroke="currentColor" strokeWidth="2" strokeLinecap="round" /></svg>
 }
 
-function PhoneIcon() {
-  return <svg viewBox="0 0 24 24" fill="none" aria-hidden="true"><path d="M8.1 4.5 9.8 8c.4.8.2 1.7-.4 2.3l-1 1a11.7 11.7 0 0 0 4.3 4.3l1-1c.6-.6 1.5-.8 2.3-.4l3.5 1.7c.8.4 1.2 1.2 1 2.1l-.5 2.1c-.2.8-.9 1.4-1.7 1.4C9.6 21.4 2.6 14.4 2.6 5.7c0-.8.6-1.5 1.4-1.7l2.1-.5c.9-.2 1.7.2 2 .9Z" stroke="currentColor" strokeWidth="1.9" strokeLinecap="round" strokeLinejoin="round" /></svg>
+function VideoIcon() {
+  return <svg viewBox="0 0 24 24" fill="none" aria-hidden="true"><path d="M4 7h10a2 2 0 0 1 2 2v6a2 2 0 0 1-2 2H4a2 2 0 0 1-2-2V9a2 2 0 0 1 2-2ZM16 10l6-3v10l-6-3" stroke="currentColor" strokeWidth="2" strokeLinejoin="round" /></svg>
 }
 
 function MessageIcon() {

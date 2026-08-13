@@ -4,6 +4,7 @@ namespace Modules\Chat\Http\Controllers;
 
 use App\Http\Controllers\Controller;
 use Illuminate\Http\Request;
+use Modules\Chat\Events\MessagesRead;
 use Modules\Chat\Models\Conversation;
 use Modules\Chat\Services\ConversationAccessService;
 use Modules\Chat\Services\ConversationService;
@@ -96,10 +97,7 @@ class ConversationController extends Controller
 
         $messagesPerPage = $this->access->sanitizePerPage((int) ($validated['messages_per_page'] ?? 50), 50, 100);
 
-        $conversation->messages()
-            ->where('sender_id', '!=', $request->user()->id)
-            ->whereNull('read_at')
-            ->update(['read_at' => now()]);
+        $this->markAsRead($conversation, $request);
 
         $conversation->load([
             'firstUser.professional',
@@ -126,5 +124,55 @@ class ConversationController extends Controller
                 'to' => $messages->lastItem(),
             ],
         ]);
+    }
+
+    public function markRead(Request $request, Conversation $conversation)
+    {
+        $this->access->assertCanUseConversation($request->user(), $conversation);
+
+        $read = $this->markAsRead($conversation, $request);
+
+        return response()->json([
+            'data' => [
+                'read' => count($read['message_uuids']),
+                'message_uuids' => $read['message_uuids'],
+                'read_at' => $read['read_at'],
+            ],
+        ]);
+    }
+
+    private function markAsRead(Conversation $conversation, Request $request): array
+    {
+        $messages = $conversation->messages()
+            ->where('sender_id', '!=', $request->user()->id)
+            ->whereNull('read_at')
+            ->get(['id', 'uuid']);
+
+        if ($messages->isEmpty()) {
+            return [
+                'message_uuids' => [],
+                'read_at' => now()->toISOString(),
+            ];
+        }
+
+        $readAt = now();
+
+        $conversation->messages()
+            ->whereIn('id', $messages->pluck('id'))
+            ->update(['read_at' => $readAt]);
+
+        $messageUuids = $messages->pluck('uuid')->values()->all();
+
+        broadcast(new MessagesRead(
+            conversation: $conversation,
+            reader: $request->user(),
+            messageUuids: $messageUuids,
+            readAt: $readAt->toISOString(),
+        ))->toOthers();
+
+        return [
+            'message_uuids' => $messageUuids,
+            'read_at' => $readAt->toISOString(),
+        ];
     }
 }

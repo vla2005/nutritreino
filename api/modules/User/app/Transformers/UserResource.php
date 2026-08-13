@@ -17,7 +17,7 @@ class UserResource extends JsonResource
         return [
             'uuid' => $this->uuid,
             'name' => $this->name,
-            'avatar' => $this->avatar,
+            'avatar' => $this->avatarUrl($this->avatar),
             'email' => $this->email,
             'document' => $this->document,
             'phone' => $this->phone,
@@ -41,5 +41,33 @@ class UserResource extends JsonResource
                 ] : null
             ),
         ];
+    }
+
+    private function avatarUrl(?string $avatar): ?string
+    {
+        if (! $avatar) {
+            return null;
+        }
+
+        $avatar = trim(str_replace('\/', '/', $avatar));
+
+        if (
+            str_starts_with($avatar, 'http://') ||
+            str_starts_with($avatar, 'https://') ||
+            str_starts_with($avatar, 'data:') ||
+            str_starts_with($avatar, 'blob:')
+        ) {
+            return $avatar;
+        }
+
+        if (str_starts_with($avatar, '/storage/')) {
+            return url($avatar);
+        }
+
+        if (str_starts_with($avatar, 'storage/')) {
+            return url('/' . $avatar);
+        }
+
+        return $avatar;
     }
 }

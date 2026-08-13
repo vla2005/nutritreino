@@ -34,6 +34,17 @@ export async function getConversation(uuid) {
   return json.data
 }
 
+export async function markConversationRead(uuid) {
+  const response = await fetch(`${API_URL}/conversations/${uuid}/read`, {
+    method: 'POST',
+    headers: authHeaders(),
+  })
+
+  const json = await response.json().catch(() => ({}))
+  if (!response.ok) throw new Error(resolveMessage(json, 'Nao foi possivel marcar as mensagens como lidas.'))
+  return json.data
+}
+
 export async function startConversationWithProfessional(professionalUuid) {
   const response = await fetch(`${API_URL}/conversations/professionals/${professionalUuid}`, {
     method: 'POST',

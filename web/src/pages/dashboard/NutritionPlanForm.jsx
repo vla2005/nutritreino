@@ -1,5 +1,7 @@
 import { useEffect, useMemo, useState } from 'react'
 import { Link, useLocation, useNavigate, useParams } from 'react-router-dom'
+import AiLoadingIcon from '../../components/ui/AiLoadingIcon.jsx'
+import AiLoadingOverlay from '../../components/ui/AiLoadingOverlay.jsx'
 import ConfirmDialog from '../../components/ui/ConfirmDialog.jsx'
 import { useAuth } from '../../composables/useAuth.js'
 import { useToast } from '../../composables/useToast.jsx'
@@ -141,6 +143,7 @@ export default function NutritionPlanForm() {
   const readOnly = isDetailMode && !canEditPlan
   const selectedPatient = useMemo(() => patients.find((patient) => String(patient.uuid) === String(plan.patientId)), [patients, plan.patientId])
   const totalFoods = useMemo(() => meals.reduce((sum, meal) => sum + meal.foods.filter((food) => food.name.trim()).length, 0), [meals])
+  const hasMealDraft = useMemo(() => meals.some((meal) => meal.name.trim() || meal.time || meal.instructions.trim() || meal.foods.some((food) => food.name.trim())), [meals])
 
   function updatePlan(field, value) {
     if (readOnly) return
@@ -373,6 +376,8 @@ export default function NutritionPlanForm() {
 
   return (
     <div className="nutrition-plan-page">
+      {generatingAi ? <AiLoadingOverlay text="IA montando o rascunho da dieta" /> : null}
+
       <header className="plan-page-header">
         <button type="button" className="plan-back-button" onClick={() => navigate(-1)} aria-label="Voltar">
           <ArrowLeftIcon />
@@ -444,8 +449,17 @@ export default function NutritionPlanForm() {
               <div className="ai-plan-head">
                 <span aria-hidden="true"><SparkIcon /></span>
                 <div>
-                  <h2>Gerar rascunho com IA</h2>
-                  <p>Informe calorias, gostos e limitações. O plano só será criado depois da sua revisão.</p>
+                  <div className="ai-plan-title-row">
+                    <h2>Copiloto de dieta</h2>
+                    <small>Gemini</small>
+                  </div>
+                  <p>Rascunho editável para revisar antes de salvar.</p>
+                  <div className="ai-plan-meta" aria-label="Contexto usado pela IA">
+                    <span>calorias</span>
+                    <span>gostos</span>
+                    <span>limitações</span>
+                    <span>dados físicos</span>
+                  </div>
                 </div>
               </div>
               <div className="ai-plan-grid">
@@ -461,21 +475,28 @@ export default function NutritionPlanForm() {
                 <PlanField label="Limitações/restrições" className="is-full">
                   <textarea value={aiForm.limitations} onChange={(event) => updateAi('limitations', event.target.value)} placeholder="Ex: intolerância à lactose, rotina corrida, pouco tempo para cozinhar..." />
                 </PlanField>
-                <PlanField label="Pedir ajuste no rascunho" className="is-full">
-                  <textarea value={aiForm.adjustmentRequest} onChange={(event) => updateAi('adjustmentRequest', event.target.value)} placeholder="Ex: reduzir carboidratos no jantar, trocar leite por opções sem lactose, aumentar proteína no café da manhã..." />
-                </PlanField>
+                {hasMealDraft ? (
+                  <PlanField label="Pedir ajuste no rascunho" className="is-full">
+                    <textarea value={aiForm.adjustmentRequest} onChange={(event) => updateAi('adjustmentRequest', event.target.value)} placeholder="Ex: reduzir carboidratos no jantar, trocar leite por opções sem lactose, aumentar proteína no café da manhã..." />
+                  </PlanField>
+                ) : null}
               </div>
               <div className="ai-plan-actions">
                 <button type="button" className="ai-generate-button" onClick={generateWithAi} disabled={generatingAi}>
-                  <SparkIcon />
-                  {generatingAi ? 'Gerando rascunho...' : 'Gerar com IA'}
+                  {generatingAi ? <AiLoadingIcon /> : <SparkIcon />}
+                  {generatingAi ? 'Gerando' : 'Gerar rascunho'}
                 </button>
-                <button type="button" className="ai-adjust-button" onClick={adjustAiDraft} disabled={generatingAi}>
-                  Ajustar rascunho
-                </button>
-                <button type="button" className="ai-clear-button" onClick={clearAiDraft} disabled={generatingAi}>
-                  Limpar rascunho
-                </button>
+                {hasMealDraft ? (
+                  <>
+                    <button type="button" className="ai-adjust-button" onClick={adjustAiDraft} disabled={generatingAi}>
+                      {generatingAi ? <AiLoadingIcon /> : null}
+                      {generatingAi ? 'Ajustando' : 'Ajustar rascunho'}
+                    </button>
+                    <button type="button" className="ai-clear-button" onClick={clearAiDraft} disabled={generatingAi}>
+                      Limpar rascunho
+                    </button>
+                  </>
+                ) : null}
               </div>
             </section>
           ) : null}

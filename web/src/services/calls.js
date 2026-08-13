@@ -23,6 +23,16 @@ export async function sendCallSignal(conversationUuid, { callId, type, payload =
 
   const json = await response.json().catch(() => ({}))
   if (!response.ok) throw new Error(resolveMessage(json, 'Nao foi possivel sincronizar a chamada.'))
+
+  if (json.data?.message) {
+    window.dispatchEvent(new CustomEvent('video-call:history-message', {
+      detail: {
+        conversationUuid,
+        message: json.data.message,
+      },
+    }))
+  }
+
   return json.data
 }
 
