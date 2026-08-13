@@ -1,4 +1,5 @@
 import AuthHero from '../AuthHero/AuthHero.jsx'
+import './AuthLayout.css'
 
 export default function AuthLayout({
   children,

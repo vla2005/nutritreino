@@ -1,6 +1,6 @@
 import { Navigate, Route, Routes, useLocation } from 'react-router-dom'
 import MainLayout from './layouts/MainLayout.jsx'
-import AcceptInvite from './pages/AcceptInvite.jsx'
+import AcceptInvitePage from '@/pages/invitations/AcceptInvitePage/AcceptInvitePage.jsx'
 import LoginPage from '@/pages/auth/LoginPage/LoginPage.jsx'
 import RegisterPage from '@/pages/auth/RegisterPage/RegisterPage.jsx'
 import VerifyEmailPage from '@/pages/auth/VerifyEmailPage/VerifyEmailPage.jsx'
@@ -16,6 +16,7 @@ import ProfileSettings from './pages/dashboard/ProfileSettings.jsx'
 import WorkoutPlanForm from './pages/dashboard/WorkoutPlanForm.jsx'
 import WorkoutPrograms from './pages/dashboard/WorkoutPrograms.jsx'
 import Patients from './pages/patients/Patients.jsx'
+import '@/features/auth/components/AuthLayout/AuthResponsive.css'
 
 const TOKEN_KEY = 'auth_token'
 
@@ -36,7 +37,7 @@ export default function App() {
       <Route path="/login" element={<LoginPage />} />
       <Route path="/register" element={<RegisterPage />} />
       <Route path="/verify-email" element={<VerifyEmailPage />} />
-      <Route path="/accept-invite" element={<AcceptInvite />} />
+      <Route path="/accept-invite" element={<AcceptInvitePage />} />
       <Route
         element={
           <ProtectedRoute>

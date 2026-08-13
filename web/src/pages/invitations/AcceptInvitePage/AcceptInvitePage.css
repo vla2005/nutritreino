@@ -1,0 +1,151 @@
+.accept-invite-page .login-hero-content {
+  margin-bottom: 205px;
+}
+
+.accept-invite-shell {
+  width: min(100%, 500px);
+  transform: translate(4px, -8px);
+}
+
+.accept-invite-header {
+  margin-bottom: 25px;
+}
+
+.accept-readonly-card {
+  border: 1px solid #dfe6e3;
+  border-radius: 14px;
+  background: #ffffff;
+  padding: 18px;
+  box-shadow: 0 2px 7px rgba(26, 43, 36, 0.05);
+}
+
+.accept-client-title {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  border-bottom: 1px solid #edf1f0;
+  padding-bottom: 16px;
+}
+
+.accept-client-title > span {
+  display: grid;
+  width: 42px;
+  height: 42px;
+  flex: 0 0 auto;
+  place-items: center;
+  border-radius: 999px;
+  background: #e1f6ed;
+  color: #15935f;
+  font-size: 13px;
+  font-weight: 800;
+}
+
+.accept-client-title strong,
+.accept-client-title small {
+  display: block;
+}
+
+.accept-client-title strong {
+  color: #02080d;
+  font-size: 16px;
+  font-weight: 800;
+  line-height: 1.25;
+}
+
+.accept-client-title small {
+  margin-top: 3px;
+  color: #536879;
+  font-size: 13px;
+}
+
+.accept-detail-grid {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 14px 18px;
+  padding-top: 16px;
+}
+
+.accept-detail-grid span,
+.accept-detail-grid strong {
+  display: block;
+}
+
+.accept-detail-grid span {
+  color: #6f8190;
+  font-size: 12px;
+  font-weight: 700;
+  margin-bottom: 5px;
+}
+
+.accept-detail-grid strong {
+  color: #02080d;
+  font-size: 14px;
+  font-weight: 800;
+  word-break: break-word;
+}
+
+.accept-password-fields {
+  display: grid;
+  gap: 18px;
+  margin-top: 24px;
+}
+
+.accept-login-link {
+  justify-self: center;
+  color: #06925f;
+  font-size: 14px;
+  font-weight: 800;
+  text-decoration: none;
+}
+
+.accept-login-link:hover {
+  color: #05744c;
+}
+
+.accept-state,
+.accept-error-card {
+  border: 1px solid #dfe6e3;
+  border-radius: 14px;
+  background: #ffffff;
+  box-shadow: 0 2px 7px rgba(26, 43, 36, 0.05);
+}
+
+.accept-state {
+  display: grid;
+  min-height: 160px;
+  place-items: center;
+  color: #536879;
+  font-size: 14px;
+}
+
+.accept-error-card {
+  padding: 24px;
+}
+
+.accept-error-card h2 {
+  margin: 0;
+  color: #02080d;
+  font-size: 22px;
+  font-weight: 800;
+}
+
+.accept-error-card p {
+  margin: 12px 0 22px;
+  color: #536879;
+  font-size: 15px;
+  line-height: 1.55;
+}
+
+.accept-error-card a {
+  display: inline-flex;
+  min-height: 42px;
+  align-items: center;
+  justify-content: center;
+  border-radius: 11px;
+  background: #2fa66f;
+  color: #ffffff;
+  font-size: 14px;
+  font-weight: 800;
+  padding: 0 17px;
+  text-decoration: none;
+}

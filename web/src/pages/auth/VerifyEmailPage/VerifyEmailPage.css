@@ -1,1 +1,106 @@
-/* Os estilos comuns de autenticacao serao extraidos do legado com AcceptInvitePage. */
+.verify-page .login-hero-content {
+  margin-bottom: 215px;
+}
+
+.verify-shell {
+  width: min(100%, 420px);
+  transform: translate(4px, -13px);
+}
+
+.verify-status-icon {
+  display: grid;
+  width: 70px;
+  height: 70px;
+  place-items: center;
+  margin-bottom: 28px;
+  border-radius: 19px;
+}
+
+.verify-status-icon svg {
+  width: 33px;
+  height: 33px;
+}
+
+.verify-status-icon.is-loading {
+  background: rgba(47, 166, 111, 0.1);
+  color: #2fa66f;
+}
+
+.verify-status-icon.is-success {
+  background: rgba(47, 166, 111, 0.13);
+  color: #22935f;
+}
+
+.verify-status-icon.is-error {
+  background: rgba(220, 38, 38, 0.09);
+  color: #c73535;
+}
+
+.verify-header {
+  margin-bottom: 0;
+}
+
+.verify-header p {
+  margin: 0 0 11px;
+  color: #6f8190;
+  font-size: 13px;
+  font-weight: 700;
+}
+
+.verify-header h2 {
+  max-width: 420px;
+  font-size: 27px;
+  line-height: 1.15;
+}
+
+.verify-header span {
+  display: block;
+  margin-top: 14px;
+  color: #63717f;
+  font-size: 15px;
+  line-height: 1.6;
+}
+
+.verify-actions {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 12px;
+  margin-top: 30px;
+}
+
+.verify-primary,
+.verify-secondary {
+  display: inline-flex;
+  min-height: 44px;
+  align-items: center;
+  justify-content: center;
+  border-radius: 11px;
+  font-size: 14px;
+  font-weight: 800;
+  text-decoration: none;
+  transition: transform 0.2s ease, background-color 0.2s ease, border-color 0.2s ease;
+}
+
+.verify-primary {
+  background: #2fa66f;
+  color: #ffffff;
+}
+
+.verify-secondary {
+  border: 1px solid #d8e0df;
+  color: #22935f;
+}
+
+.verify-primary:hover,
+.verify-secondary:hover {
+  transform: translateY(-1px);
+}
+
+.verify-primary:hover {
+  background: #279763;
+}
+
+.verify-secondary:hover {
+  border-color: rgba(47, 166, 111, 0.5);
+  background: rgba(47, 166, 111, 0.06);
+}
