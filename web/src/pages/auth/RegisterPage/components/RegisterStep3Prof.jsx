@@ -104,7 +104,7 @@ function AvatarCropDialog({ source, onClose, onPickFile, onConfirm }) {
   const imageRef = useRef(null)
   const stageRef = useRef(null)
   const dragRef = useRef(null)
-  const [loaded, setLoaded] = useState(false)
+  const [imageSize, setImageSize] = useState(null)
   const [zoom, setZoom] = useState(1)
   const [offset, setOffset] = useState({ x: 0, y: 0 })
 
@@ -114,14 +114,13 @@ function AvatarCropDialog({ source, onClose, onPickFile, onConfirm }) {
   }, [])
 
   const metrics = useMemo(() => {
-    const image = imageRef.current
-    if (!image || !loaded) return null
-    const baseScale = Math.max(cropSize / image.naturalWidth, cropSize / image.naturalHeight)
+    if (!imageSize) return null
+    const baseScale = Math.max(cropSize / imageSize.width, cropSize / imageSize.height)
     return {
-      width: image.naturalWidth * baseScale * zoom,
-      height: image.naturalHeight * baseScale * zoom,
+      width: imageSize.width * baseScale * zoom,
+      height: imageSize.height * baseScale * zoom,
     }
-  }, [cropSize, loaded, zoom])
+  }, [cropSize, imageSize, zoom])
 
   useEffect(() => {
     function stopDrag() {
@@ -213,8 +212,11 @@ function AvatarCropDialog({ source, onClose, onPickFile, onConfirm }) {
               height: `${metrics.height}px`,
               transform: `translate(calc(-50% + ${offset.x}px), calc(-50% + ${offset.y}px))`,
             } : undefined}
-            onLoad={() => {
-              setLoaded(true)
+            onLoad={(event) => {
+              setImageSize({
+                width: event.currentTarget.naturalWidth,
+                height: event.currentTarget.naturalHeight,
+              })
               setOffset({ x: 0, y: 0 })
             }}
           />

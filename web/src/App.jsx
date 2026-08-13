@@ -1,9 +1,9 @@
 import { Navigate, Route, Routes, useLocation } from 'react-router-dom'
 import MainLayout from './layouts/MainLayout.jsx'
 import AcceptInvite from './pages/AcceptInvite.jsx'
-import Login from './pages/Login.jsx'
-import Register from './pages/Register.jsx'
-import VerifyEmail from './pages/VerifyEmail.jsx'
+import LoginPage from '@/pages/auth/LoginPage/LoginPage.jsx'
+import RegisterPage from '@/pages/auth/RegisterPage/RegisterPage.jsx'
+import VerifyEmailPage from '@/pages/auth/VerifyEmailPage/VerifyEmailPage.jsx'
 import DashboardHome from './pages/dashboard/DashboardHome.jsx'
 import ClientProfile from './pages/dashboard/ClientProfile.jsx'
 import MainDashboard from './pages/dashboard/MainDashboard.jsx'
@@ -33,9 +33,9 @@ export default function App() {
   return (
     <Routes>
       <Route path="/" element={<Navigate to="/dashboard" replace />} />
-      <Route path="/login" element={<Login />} />
-      <Route path="/register" element={<Register />} />
-      <Route path="/verify-email" element={<VerifyEmail />} />
+      <Route path="/login" element={<LoginPage />} />
+      <Route path="/register" element={<RegisterPage />} />
+      <Route path="/verify-email" element={<VerifyEmailPage />} />
       <Route path="/accept-invite" element={<AcceptInvite />} />
       <Route
         element={
