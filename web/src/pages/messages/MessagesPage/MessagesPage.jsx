@@ -38,7 +38,7 @@ export default function MessagesPage() {
   const [attachment, setAttachment] = useState(null)
   const [sending, setSending] = useState(false)
   const [participantTyping, setParticipantTyping] = useState(false)
-  const [onlineUsers, setOnlineUsers] = useState(() => getOnlineUserUuids())
+  const onlineUsersRef = useRef(getOnlineUserUuids())
   const fileInputRef = useRef(null)
   const listEndRef = useRef(null)
   const typingTimerRef = useRef(null)
@@ -52,7 +52,7 @@ export default function MessagesPage() {
         setLoading(true)
         const data = await listConversations()
         if (mounted) {
-          const conversationsWithPresence = applyOnlineStatus(data, onlineUsers)
+          const conversationsWithPresence = applyOnlineStatus(data, onlineUsersRef.current)
           setConversations(conversationsWithPresence)
           emitUnreadCount(conversationsWithPresence)
         }
@@ -71,10 +71,7 @@ export default function MessagesPage() {
   }, [toast])
 
   useEffect(() => {
-    if (!selectedUuid) {
-      setSelected(null)
-      return
-    }
+    if (!selectedUuid) return undefined
 
     let mounted = true
 
@@ -83,9 +80,9 @@ export default function MessagesPage() {
         setLoadingConversation(true)
         const data = await getConversation(selectedUuid)
         if (mounted) {
-          setSelected(applyOnlineStatusToConversation(data, onlineUsers))
+          setSelected(applyOnlineStatusToConversation(data, onlineUsersRef.current))
           setConversations((current) => {
-            const next = upsertConversation(current, { ...applyOnlineStatusToConversation(data, onlineUsers), unread_count: 0 })
+            const next = upsertConversation(current, { ...applyOnlineStatusToConversation(data, onlineUsersRef.current), unread_count: 0 })
             emitUnreadCount(next)
             return next
           })
@@ -180,7 +177,7 @@ export default function MessagesPage() {
   useEffect(() => {
     function handleOnlineUsers(event) {
       const nextOnlineUsers = new Set(event.detail?.uuids || [])
-      setOnlineUsers(nextOnlineUsers)
+      onlineUsersRef.current = nextOnlineUsers
       setConversations((current) => applyOnlineStatus(current, nextOnlineUsers))
       setSelected((current) => current ? applyOnlineStatusToConversation(current, nextOnlineUsers) : current)
     }
@@ -197,7 +194,8 @@ export default function MessagesPage() {
   }, [selected?.messages?.length, participantTyping])
 
   const filteredConversations = useMemo(() => conversations, [conversations])
-  const canSend = Boolean(selected?.uuid) && (body.trim() || attachment) && !sending
+  const activeConversation = selectedUuid ? selected : null
+  const canSend = Boolean(activeConversation?.uuid) && (body.trim() || attachment) && !sending
 
   async function handleSubmit(event) {
     event.preventDefault()
@@ -205,11 +203,11 @@ export default function MessagesPage() {
 
     try {
       setSending(true)
-      const message = await sendMessage(selected.uuid, { body, attachment })
+      const message = await sendMessage(activeConversation.uuid, { body, attachment })
       whisperTyping(false)
       setSelected((current) => appendMessage(current, message))
       setConversations((current) => {
-        const next = moveConversationToTop(current, selected.uuid, message)
+        const next = moveConversationToTop(current, activeConversation.uuid, message)
         emitUnreadCount(next)
         return next
       })
@@ -228,9 +226,9 @@ export default function MessagesPage() {
   }
 
   function startVideoCall() {
-    if (!selected?.uuid || !selected?.participant) return
+    if (!activeConversation?.uuid || !activeConversation?.participant) return
     window.dispatchEvent(new CustomEvent('video-call:start', {
-      detail: { conversation: selected },
+      detail: { conversation: activeConversation },
     }))
   }
 
@@ -322,21 +320,21 @@ export default function MessagesPage() {
           <button type="button" className="messages-chat-back" onClick={() => setSearchParams({})} aria-label="Voltar para conversas">
             <ArrowLeftIcon />
           </button>
-          {selected?.participant ? <ChatAvatar name={selected.participant.name} avatar={selected.participant.avatar} /> : <div className="messages-contact-placeholder" aria-hidden="true" />}
+          {activeConversation?.participant ? <ChatAvatar name={activeConversation.participant.name} avatar={activeConversation.participant.avatar} /> : <div className="messages-contact-placeholder" aria-hidden="true" />}
           <div className="messages-chat-title">
             <div className="messages-chat-name">
-              <strong>{selected?.participant?.name || 'Selecione uma conversa'}</strong>
-              {selected?.participant ? <span className="messages-role-pill">{participantLabel(selected.participant)}</span> : null}
+              <strong>{activeConversation?.participant?.name || 'Selecione uma conversa'}</strong>
+              {activeConversation?.participant ? <span className="messages-role-pill">{participantLabel(activeConversation.participant)}</span> : null}
             </div>
             <span>
-              {participantTyping ? <TypingIndicator variant="label" /> : selected ? <PresenceStatus participant={selected.participant} /> : 'Mensagens privadas'}
+              {participantTyping ? <TypingIndicator variant="label" /> : activeConversation ? <PresenceStatus participant={activeConversation.participant} /> : 'Mensagens privadas'}
             </span>
           </div>
           <div className="messages-chat-actions">
             <button type="button" className="messages-menu-button" aria-label="Buscar na conversa">
               <SearchIcon />
             </button>
-            <button type="button" className="messages-menu-button messages-call-button" aria-label="Fazer chamada de video" disabled={!selected?.participant} onClick={startVideoCall}>
+            <button type="button" className="messages-menu-button messages-call-button" aria-label="Fazer chamada de video" disabled={!activeConversation?.participant} onClick={startVideoCall}>
               <VideoIcon />
             </button>
             <button type="button" className="messages-menu-button" aria-label="Mais opcoes">
@@ -348,9 +346,9 @@ export default function MessagesPage() {
         <div className="messages-chat-body">
           {loadingConversation ? (
             <div className="messages-empty-chat"><p>Carregando mensagens...</p></div>
-          ) : selected?.messages?.length ? (
+          ) : activeConversation?.messages?.length ? (
             <div className="messages-thread">
-              {messagesWithDateSeparators(selected.messages).map((item) => (
+              {messagesWithDateSeparators(activeConversation.messages).map((item) => (
                 item.kind === 'date'
                   ? <DateSeparator key={item.key} label={item.label} />
                   : <MessageBubble key={item.message.uuid} message={item.message} mine={item.message.sender_uuid === user?.uuid} />
@@ -361,14 +359,14 @@ export default function MessagesPage() {
           ) : (
             <div className="messages-empty-chat">
               <span aria-hidden="true"><MessageIcon /></span>
-              <h2>{selected ? 'Comece a conversa' : 'Nenhuma conversa selecionada'}</h2>
-              <p>{selected ? 'Envie uma mensagem, foto ou arquivo para este contato.' : 'Escolha um contato para iniciar ou continuar o atendimento.'}</p>
+              <h2>{activeConversation ? 'Comece a conversa' : 'Nenhuma conversa selecionada'}</h2>
+              <p>{activeConversation ? 'Envie uma mensagem, foto ou arquivo para este contato.' : 'Escolha um contato para iniciar ou continuar o atendimento.'}</p>
             </div>
           )}
         </div>
 
         <form className="messages-composer" onSubmit={handleSubmit}>
-          <button type="button" aria-label="Anexar arquivo" disabled={!selected || sending} onClick={() => fileInputRef.current?.click()}>
+          <button type="button" aria-label="Anexar arquivo" disabled={!activeConversation || sending} onClick={() => fileInputRef.current?.click()}>
             <AttachIcon />
           </button>
           <input ref={fileInputRef} type="file" hidden onChange={(event) => setAttachment(event.target.files?.[0] || null)} />
@@ -378,7 +376,7 @@ export default function MessagesPage() {
                 {attachment.name}
               </button>
             ) : null}
-            <input type="text" value={body} onChange={handleBodyChange} placeholder="Digite sua mensagem..." aria-label="Mensagem" disabled={!selected || sending} />
+            <input type="text" value={body} onChange={handleBodyChange} placeholder="Digite sua mensagem..." aria-label="Mensagem" disabled={!activeConversation || sending} />
           </div>
           <button type="submit" aria-label="Enviar mensagem" disabled={!canSend}>
             <SendIcon />

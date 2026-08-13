@@ -1,4 +1,4 @@
-import { useEffect, useState } from 'react'
+import { useCallback, useEffect, useState } from 'react'
 import { useLocation } from 'react-router-dom'
 import { useAuth } from '@/composables/useAuth.js'
 import { useToast } from '@/composables/useToast.jsx'
@@ -48,7 +48,7 @@ export default function ClientProgressPage() {
   const [imageDialog, setImageDialog] = useState(null)
   const [recordDialog, setRecordDialog] = useState(null)
 
-  async function loadProgress() {
+  const loadProgress = useCallback(async () => {
     try {
       setLoading(true)
       setProgressError('')
@@ -59,11 +59,11 @@ export default function ClientProgressPage() {
     } finally {
       setLoading(false)
     }
-  }
+  }, [clientUuid, toast])
 
   useEffect(() => {
     loadProgress()
-  }, [clientUuid])
+  }, [loadProgress])
 
   if (loading) {
     return (
@@ -199,7 +199,7 @@ function ProgressAccessDialog({ onClose }) {
   const [access, setAccess] = useState({ granted: [], available: [] })
   const [selectedUuid, setSelectedUuid] = useState('')
 
-  async function loadAccess() {
+  const loadAccess = useCallback(async () => {
     try {
       setLoading(true)
       const data = await getProgressAccess()
@@ -210,11 +210,11 @@ function ProgressAccessDialog({ onClose }) {
     } finally {
       setLoading(false)
     }
-  }
+  }, [toast])
 
   useEffect(() => {
     loadAccess()
-  }, [])
+  }, [loadAccess])
 
   async function handleGrant() {
     if (!selectedUuid) return
