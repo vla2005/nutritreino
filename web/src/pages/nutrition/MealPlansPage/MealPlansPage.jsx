@@ -54,10 +54,6 @@ export default function MealPlansPage() {
     }
   }, [page, search, selectedPatient?.uuid, statusFilter, toast])
 
-  useEffect(() => {
-    setPage(1)
-  }, [search, selectedPatient?.uuid, statusFilter])
-
   const statCards = useMemo(() => [
     { tone: 'green', icon: <ClipboardIcon />, value: numberOrZero(stats.total), label: 'Planos criados', detail: 'Total de planos' },
     { tone: 'green', icon: <LeafIcon />, value: numberOrZero(stats.active), label: 'Planos ativos', detail: 'Em acompanhamento' },
@@ -104,7 +100,7 @@ export default function MealPlansPage() {
           <div className="plans-panel-tools">
             <label className="plans-search">
               <SearchIcon />
-              <input type="search" placeholder="Buscar plano..." aria-label="Buscar plano" value={search} onChange={(event) => setSearch(event.target.value)} />
+              <input type="search" placeholder="Buscar plano..." aria-label="Buscar plano" value={search} onChange={(event) => { setSearch(event.target.value); setPage(1) }} />
             </label>
             <button type="button" className={filtersOpen || statusFilter ? 'is-active' : ''} aria-label="Filtros" onClick={() => setFiltersOpen((current) => !current)}>
               <FilterIcon /> <span>Filtros</span>
@@ -116,14 +112,14 @@ export default function MealPlansPage() {
           <div className="plans-filter-bar">
             <label>
               <span>Status</span>
-              <select value={statusFilter} onChange={(event) => setStatusFilter(event.target.value)}>
+              <select value={statusFilter} onChange={(event) => { setStatusFilter(event.target.value); setPage(1) }}>
                 <option value="">Todos</option>
                 <option value="active">Ativo</option>
                 <option value="inactive">Inativo</option>
                 <option value="finished">Finalizado</option>
               </select>
             </label>
-            <button type="button" onClick={() => { setSearch(''); setStatusFilter('') }}>
+            <button type="button" onClick={() => { setSearch(''); setStatusFilter(''); setPage(1) }}>
               Limpar filtros
             </button>
           </div>

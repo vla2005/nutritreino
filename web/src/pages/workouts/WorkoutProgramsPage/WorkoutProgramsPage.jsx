@@ -57,10 +57,6 @@ export default function WorkoutProgramsPage() {
     }
   }, [goalFilter, page, search, selectedPatient?.uuid, statusFilter, toast])
 
-  useEffect(() => {
-    setPage(1)
-  }, [goalFilter, search, selectedPatient?.uuid, statusFilter])
-
   const statCards = useMemo(() => [
     {
       tone: 'green',
@@ -131,7 +127,7 @@ export default function WorkoutProgramsPage() {
           <div className="workouts-panel-tools">
             <label className="workouts-search">
               <SearchIcon />
-              <input type="search" placeholder="Buscar treino..." aria-label="Buscar treino" value={search} onChange={(event) => setSearch(event.target.value)} />
+              <input type="search" placeholder="Buscar treino..." aria-label="Buscar treino" value={search} onChange={(event) => { setSearch(event.target.value); setPage(1) }} />
             </label>
             <button type="button" className={filtersOpen || statusFilter || goalFilter ? 'is-active' : ''} aria-label="Filtros" onClick={() => setFiltersOpen((current) => !current)}>
               <FilterIcon /> <span>Filtros</span>
@@ -143,7 +139,7 @@ export default function WorkoutProgramsPage() {
           <div className="workouts-filter-bar">
             <label>
               <span>Status</span>
-              <select value={statusFilter} onChange={(event) => setStatusFilter(event.target.value)}>
+              <select value={statusFilter} onChange={(event) => { setStatusFilter(event.target.value); setPage(1) }}>
                 <option value="">Todos</option>
                 <option value="active">Ativo</option>
                 <option value="draft">Rascunho</option>
@@ -152,12 +148,12 @@ export default function WorkoutProgramsPage() {
             </label>
             <label>
               <span>Objetivo</span>
-              <select value={goalFilter} onChange={(event) => setGoalFilter(event.target.value)}>
+              <select value={goalFilter} onChange={(event) => { setGoalFilter(event.target.value); setPage(1) }}>
                 <option value="">Todos</option>
                 {goals.map((goal) => <option value={goal} key={goal}>{goal}</option>)}
               </select>
             </label>
-            <button type="button" onClick={() => { setSearch(''); setStatusFilter(''); setGoalFilter('') }}>
+            <button type="button" onClick={() => { setSearch(''); setStatusFilter(''); setGoalFilter(''); setPage(1) }}>
               Limpar filtros
             </button>
           </div>
