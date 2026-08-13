@@ -1,12 +1,14 @@
 import { useEffect, useMemo, useState } from 'react'
 import { Link, useNavigate, useParams } from 'react-router-dom'
-import { useAuth } from '../../composables/useAuth.js'
-import { useToast } from '../../composables/useToast.jsx'
-import { getClient } from '../../services/clients.js'
-import { startConversationWithClient } from '../../services/messages.js'
-import { normalizeAvatarUrl } from '../../utils/avatar.js'
+import { useAuth } from '@/composables/useAuth.js'
+import { useToast } from '@/composables/useToast.jsx'
+import { getClient } from '@/services/clients.js'
+import { startConversationWithClient } from '@/services/messages.js'
+import { normalizeAvatarUrl } from '@/utils/avatar.js'
+import '@/features/people/styles/ProfilePage.css'
+import './ClientProfilePage.css'
 
-export default function ClientProfile() {
+export default function ClientProfilePage() {
   const { uuid } = useParams()
   const navigate = useNavigate()
   const { user } = useAuth()

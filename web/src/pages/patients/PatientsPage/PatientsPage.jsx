@@ -1,16 +1,17 @@
-import { useEffect, useMemo, useState } from 'react'
+import { useCallback, useEffect, useMemo, useState } from 'react'
 import { Link, useNavigate } from 'react-router-dom'
-import PatientFormModal from '../../components/patients/PatientFormModal.jsx'
+import PatientFormModal from '@/features/people/components/PatientFormModal/PatientFormModal.jsx'
 import Pagination from '@/shared/components/ui/Pagination/Pagination.jsx'
-import { useAuth } from '../../composables/useAuth.js'
-import { useToast } from '../../composables/useToast.jsx'
-import { clientErrorToFormErrors, inviteClient, listClients, validateClientPayload } from '../../services/clients.js'
-import { startConversationWithClient } from '../../services/messages.js'
-import { normalizeAvatarUrl } from '../../utils/avatar.js'
+import { useAuth } from '@/composables/useAuth.js'
+import { useToast } from '@/composables/useToast.jsx'
+import { clientErrorToFormErrors, inviteClient, listClients, validateClientPayload } from '@/services/clients.js'
+import { startConversationWithClient } from '@/services/messages.js'
+import { normalizeAvatarUrl } from '@/utils/avatar.js'
+import './PatientsPage.css'
 
 const emptyForm = () => ({ name: '', email: '', phone: '', cpf: '', gender: '', birth_date: '', height: '', weight: '' })
 
-export default function Patients() {
+export default function PatientsPage() {
   const { user } = useAuth()
   const navigate = useNavigate()
   const toast = useToast()
@@ -29,10 +30,6 @@ export default function Patients() {
   const [startingChatUuid, setStartingChatUuid] = useState('')
   const stats = meta?.stats || {}
 
-  useEffect(() => {
-    refreshPatients()
-  }, [searchPage, search])
-
   const normalizedPatients = useMemo(() => patients.map(normalizePatient), [patients])
   const statCards = [
     { tone: 'green', icon: <UsersIcon />, value: numberOrZero(stats.total), label: `${label} cadastrados`, detail: 'Total vinculado' },
@@ -41,7 +38,7 @@ export default function Patients() {
     { tone: 'purple', icon: <CalendarIcon />, value: formatDate(stats.latest_update), label: 'Última atualização', detail: 'Mais recente' },
   ]
 
-  async function refreshPatients() {
+  const refreshPatients = useCallback(async () => {
     try {
       setLoading(true)
       const { data, meta: pagination } = await listClients({
@@ -57,7 +54,11 @@ export default function Patients() {
     } finally {
       setLoading(false)
     }
-  }
+  }, [search, searchPage, toast])
+
+  useEffect(() => {
+    refreshPatients()
+  }, [refreshPatients])
 
   function openAdd() {
     setForm(emptyForm())

@@ -1,4 +1,5 @@
 import Button from '@/shared/components/ui/Button/Button.jsx'
+import './PatientFormModal.css'
 
 export default function PatientFormModal({ open, form, errors = {}, loading = false, onClose, onSave, onChange }) {
   if (!open) return null

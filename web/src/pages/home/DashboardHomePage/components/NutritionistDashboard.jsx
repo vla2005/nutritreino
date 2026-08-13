@@ -1,6 +1,6 @@
 import { useMemo, useState } from 'react'
 import { Link } from 'react-router-dom'
-import PatientFormModal from '@/components/patients/PatientFormModal.jsx'
+import PatientFormModal from '@/features/people/components/PatientFormModal/PatientFormModal.jsx'
 import { useAuth } from '@/composables/useAuth.js'
 import { useToast } from '@/composables/useToast.jsx'
 import { clientErrorToFormErrors, inviteClient, validateClientPayload } from '@/services/clients.js'

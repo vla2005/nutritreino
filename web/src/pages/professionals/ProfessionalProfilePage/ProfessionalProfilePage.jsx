@@ -1,11 +1,13 @@
-import { useEffect, useMemo, useState } from 'react'
+import { useEffect, useState } from 'react'
 import { useNavigate, useParams } from 'react-router-dom'
-import { useToast } from '../../composables/useToast.jsx'
-import { startConversationWithProfessional } from '../../services/messages.js'
-import { getProfessional } from '../../services/professionals.js'
-import { normalizeAvatarUrl } from '../../utils/avatar.js'
+import { useToast } from '@/composables/useToast.jsx'
+import { startConversationWithProfessional } from '@/services/messages.js'
+import { getProfessional } from '@/services/professionals.js'
+import { normalizeAvatarUrl } from '@/utils/avatar.js'
+import '@/features/people/styles/ProfilePage.css'
+import './ProfessionalProfilePage.css'
 
-export default function ProfessionalProfile() {
+export default function ProfessionalProfilePage() {
   const { uuid } = useParams()
   const navigate = useNavigate()
   const toast = useToast()
