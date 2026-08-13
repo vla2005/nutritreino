@@ -11,7 +11,7 @@ import Messages from '@/pages/dashboard/Messages.jsx'
 import NutritionPlanPage from '@/pages/nutrition/NutritionPlanPage/NutritionPlanPage.jsx'
 import ProfessionalProfilePage from '@/pages/professionals/ProfessionalProfilePage/ProfessionalProfilePage.jsx'
 import ClientProgressPage from '@/pages/progress/ClientProgressPage/ClientProgressPage.jsx'
-import ProfileSettings from '@/pages/dashboard/ProfileSettings.jsx'
+import ProfileSettingsPage from '@/pages/settings/ProfileSettingsPage/ProfileSettingsPage.jsx'
 import WorkoutPlanPage from '@/pages/workouts/WorkoutPlanPage/WorkoutPlanPage.jsx'
 import WorkoutProgramsPage from '@/pages/workouts/WorkoutProgramsPage/WorkoutProgramsPage.jsx'
 import PatientsPage from '@/pages/patients/PatientsPage/PatientsPage.jsx'
@@ -38,7 +38,7 @@ export default function AppRoutes() {
             <Route path="meal-plans" element={<MealPlansPage />} />
             <Route path="messages" element={<Messages />} />
             <Route path="progress" element={<ClientProgressPage />} />
-            <Route path="settings" element={<ProfileSettings />} />
+            <Route path="settings" element={<ProfileSettingsPage />} />
             <Route path="plans" element={<NutritionPlanPage />} />
             <Route path="plans/:uuid" element={<NutritionPlanPage />} />
             <Route path="professionals/:uuid" element={<ProfessionalProfilePage />} />

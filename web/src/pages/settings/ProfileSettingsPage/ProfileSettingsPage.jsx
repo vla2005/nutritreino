@@ -1,11 +1,14 @@
 import { useEffect, useMemo, useState } from 'react'
 import { useNavigate } from 'react-router-dom'
-import { useAuth } from '../../composables/useAuth.js'
-import { useToast } from '../../composables/useToast.jsx'
-import { updateMyProfile } from '../../services/profile.js'
-import { normalizeAvatarUrl } from '../../utils/avatar.js'
+import { useAuth } from '@/composables/useAuth.js'
+import { useToast } from '@/composables/useToast.jsx'
+import ProfileSettingsField from './components/ProfileSettingsField.jsx'
+import { profileToForm } from './utils/profileSettingsForm.js'
+import { updateMyProfile } from '@/services/profile.js'
+import { normalizeAvatarUrl } from '@/utils/avatar.js'
+import './ProfileSettingsPage.css'
 
-export default function ProfileSettings() {
+export default function ProfileSettingsPage() {
   const toast = useToast()
   const navigate = useNavigate()
   const { user, fetchMe, logout } = useAuth()
@@ -87,10 +90,10 @@ export default function ProfileSettings() {
         <section className="settings-section">
           <h2>Dados pessoais</h2>
           <div className="settings-grid">
-            <Field label="Nome" value={form.name} onChange={(value) => update('name', value)} required />
-            <Field label="Email" type="email" value={form.email} onChange={(value) => update('email', value)} required />
-            <Field label="Telefone" value={form.phone} onChange={(value) => update('phone', value)} />
-            <Field label="CPF" value={form.cpf} onChange={(value) => update('cpf', value)} />
+            <ProfileSettingsField label="Nome" value={form.name} onChange={(value) => update('name', value)} required />
+            <ProfileSettingsField label="Email" type="email" value={form.email} onChange={(value) => update('email', value)} required />
+            <ProfileSettingsField label="Telefone" value={form.phone} onChange={(value) => update('phone', value)} />
+            <ProfileSettingsField label="CPF" value={form.cpf} onChange={(value) => update('cpf', value)} />
           </div>
         </section>
 
@@ -106,7 +109,7 @@ export default function ProfileSettings() {
                   <option value="trainer">Treinador</option>
                 </select>
               </label>
-              <Field label="Registro profissional" value={form.registration} onChange={(value) => update('registration', value)} required />
+              <ProfileSettingsField label="Registro profissional" value={form.registration} onChange={(value) => update('registration', value)} required />
               <label className="settings-wide">
                 <span>Bio</span>
                 <textarea value={form.bio} onChange={(event) => update('bio', event.target.value)} rows="5" placeholder="Conte sobre sua abordagem, experiencia e especialidades." />
@@ -127,9 +130,9 @@ export default function ProfileSettings() {
                   <option value="female">Feminino</option>
                 </select>
               </label>
-              <Field label="Nascimento" type="date" value={form.birth_date} onChange={(value) => update('birth_date', value)} />
-              <Field label="Altura (cm)" value={form.height} onChange={(value) => update('height', value)} />
-              <Field label="Peso (kg)" value={form.weight} onChange={(value) => update('weight', value)} />
+              <ProfileSettingsField label="Nascimento" type="date" value={form.birth_date} onChange={(value) => update('birth_date', value)} />
+              <ProfileSettingsField label="Altura (cm)" value={form.height} onChange={(value) => update('height', value)} />
+              <ProfileSettingsField label="Peso (kg)" value={form.weight} onChange={(value) => update('weight', value)} />
             </div>
           </section>
         ) : null}
@@ -141,32 +144,6 @@ export default function ProfileSettings() {
       </form>
     </div>
   )
-}
-
-function Field({ label, value, onChange, type = 'text', required = false }) {
-  return (
-    <label>
-      <span>{label}</span>
-      <input type={type} value={value} onChange={(event) => onChange(event.target.value)} required={required} />
-    </label>
-  )
-}
-
-function profileToForm(user) {
-  return {
-    name: user?.name || '',
-    email: user?.email || '',
-    phone: user?.phone || user?.client?.phone || '',
-    cpf: user?.cpf || user?.client?.cpf || '',
-    avatar_file: null,
-    speciality: user?.professional?.speciality || '',
-    registration: user?.professional?.registration || '',
-    bio: user?.professional?.bio || '',
-    gender: user?.client?.gender || '',
-    birth_date: user?.client?.birth_date || '',
-    height: user?.client?.height || '',
-    weight: user?.client?.weight || '',
-  }
 }
 
 function UserIcon() {
