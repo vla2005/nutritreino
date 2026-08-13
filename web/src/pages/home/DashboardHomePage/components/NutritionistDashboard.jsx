@@ -1,50 +1,24 @@
-import { useEffect, useMemo, useState } from 'react'
+import { useMemo, useState } from 'react'
 import { Link } from 'react-router-dom'
-import PatientFormModal from '../../components/patients/PatientFormModal.jsx'
-import { useAuth } from '../../composables/useAuth.js'
-import { useToast } from '../../composables/useToast.jsx'
-import { clientErrorToFormErrors, inviteClient, validateClientPayload } from '../../services/clients.js'
-import { getNutritionistDashboard } from '../../services/dashboard.js'
-import { normalizeAvatarUrl } from '../../utils/avatar.js'
+import PatientFormModal from '@/components/patients/PatientFormModal.jsx'
+import { useAuth } from '@/composables/useAuth.js'
+import { useToast } from '@/composables/useToast.jsx'
+import { clientErrorToFormErrors, inviteClient, validateClientPayload } from '@/services/clients.js'
+import { getNutritionistDashboard } from '@/services/dashboard.js'
+import { normalizeAvatarUrl } from '@/utils/avatar.js'
+import { useProfessionalDashboard } from '../hooks/useProfessionalDashboard.js'
+import { buildDonutSegments } from '../utils/dashboardCharts.js'
 
 const emptyForm = () => ({ name: '', email: '', phone: '', cpf: '', gender: '', birth_date: '', height: '', weight: '' })
 
-export default function NutritionistHome() {
+export default function NutritionistDashboard() {
   const { user, fullName } = useAuth()
   const toast = useToast()
-  const [dashboard, setDashboard] = useState(null)
-  const [loading, setLoading] = useState(true)
-  const [error, setError] = useState(null)
+  const { dashboard, loading, error, refresh } = useProfessionalDashboard(getNutritionistDashboard)
   const [modalOpen, setModalOpen] = useState(false)
   const [form, setForm] = useState(emptyForm)
   const [formErrors, setFormErrors] = useState({})
   const [saving, setSaving] = useState(false)
-
-  useEffect(() => {
-    let mounted = true
-
-    async function loadDashboard() {
-      try {
-        setLoading(true)
-        setError(null)
-        const data = await getNutritionistDashboard()
-        if (mounted) setDashboard(data)
-      } catch (error) {
-        if (mounted) {
-          setError(error.message)
-          toast.warning(error.message)
-        }
-      } finally {
-        if (mounted) setLoading(false)
-      }
-    }
-
-    loadDashboard()
-
-    return () => {
-      mounted = false
-    }
-  }, [toast])
 
   const data = dashboard
   const firstName = professionalFirstName(data?.greeting?.name || fullName || user?.name)
@@ -81,7 +55,7 @@ export default function NutritionistHome() {
       await inviteClient(form)
       setModalOpen(false)
       toast.success('Convite enviado com sucesso.')
-      setDashboard(await getNutritionistDashboard())
+      await refresh({ notifyError: false })
     } catch (error) {
       const errors = clientErrorToFormErrors(error)
       setFormErrors(errors)
@@ -308,12 +282,7 @@ function CardTitle({ title, link, linkTo = '/dashboard/meal-plans', action }) {
 
 function Donut({ average, items }) {
   const colors = { green: '#08a966', blue: '#64748b', orange: '#f5af17', red: '#ef5b5b' }
-  let offset = 0
-  const segments = items.map((item) => {
-    const segment = `${colors[item.tone] || colors.green} ${offset}% ${offset + item.percent}%`
-    offset += item.percent
-    return segment
-  }).join(', ')
+  const segments = buildDonutSegments(items, colors)
 
   return (
     <div className="nd-donut" style={{ '--donut': `conic-gradient(${segments || '#e8efec 0 100%'})` }}>
@@ -465,7 +434,7 @@ function normalizeHistory(points = []) {
   return Array.isArray(points) ? points : []
 }
 
-function fallbackDashboard(name = 'Vanessa Almeida') {
+function _fallbackDashboard(name = 'Vanessa Almeida') {
   return {
     greeting: { name, date: '2026-05-18' },
     stats: {

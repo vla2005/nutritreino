@@ -4,7 +4,7 @@ import AcceptInvitePage from '@/pages/invitations/AcceptInvitePage/AcceptInviteP
 import LoginPage from '@/pages/auth/LoginPage/LoginPage.jsx'
 import RegisterPage from '@/pages/auth/RegisterPage/RegisterPage.jsx'
 import VerifyEmailPage from '@/pages/auth/VerifyEmailPage/VerifyEmailPage.jsx'
-import DashboardHome from '@/pages/dashboard/DashboardHome.jsx'
+import DashboardHomePage from '@/pages/home/DashboardHomePage/DashboardHomePage.jsx'
 import ClientProfile from '@/pages/dashboard/ClientProfile.jsx'
 import MealPlans from '@/pages/dashboard/MealPlans.jsx'
 import Messages from '@/pages/dashboard/Messages.jsx'
@@ -33,7 +33,7 @@ export default function AppRoutes() {
           <Route path="/patients" element={<Patients />} />
           <Route path="/dashboard" element={<AuthenticatedOutlet />}>
             <Route index element={<Navigate to="/dashboard/home" replace />} />
-            <Route path="home" element={<DashboardHome />} />
+            <Route path="home" element={<DashboardHomePage />} />
             <Route path="clients/:uuid" element={<ClientProfile />} />
             <Route path="meal-plans" element={<MealPlans />} />
             <Route path="messages" element={<Messages />} />

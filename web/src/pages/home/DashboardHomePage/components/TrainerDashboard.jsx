@@ -1,42 +1,14 @@
-import { useEffect, useMemo, useState } from 'react'
+import { useMemo } from 'react'
 import { Link } from 'react-router-dom'
-import { useAuth } from '../../composables/useAuth.js'
-import { useToast } from '../../composables/useToast.jsx'
-import { getTrainerDashboard } from '../../services/dashboard.js'
-import { normalizeAvatarUrl } from '../../utils/avatar.js'
+import { useAuth } from '@/composables/useAuth.js'
+import { getTrainerDashboard } from '@/services/dashboard.js'
+import { normalizeAvatarUrl } from '@/utils/avatar.js'
+import { useProfessionalDashboard } from '../hooks/useProfessionalDashboard.js'
+import { buildDonutSegments } from '../utils/dashboardCharts.js'
 
-export default function TrainerHome() {
+export default function TrainerDashboard() {
   const { user, fullName } = useAuth()
-  const toast = useToast()
-  const [dashboard, setDashboard] = useState(null)
-  const [loading, setLoading] = useState(true)
-  const [error, setError] = useState(null)
-
-  useEffect(() => {
-    let mounted = true
-
-    async function loadDashboard() {
-      try {
-        setLoading(true)
-        setError(null)
-        const data = await getTrainerDashboard()
-        if (mounted) setDashboard(data)
-      } catch (error) {
-        if (mounted) {
-          setError(error.message)
-          toast.warning(error.message)
-        }
-      } finally {
-        if (mounted) setLoading(false)
-      }
-    }
-
-    loadDashboard()
-
-    return () => {
-      mounted = false
-    }
-  }, [toast])
+  const { dashboard, loading, error } = useProfessionalDashboard(getTrainerDashboard)
 
   const data = dashboard
   const firstName = firstNameFrom(data?.greeting?.name || fullName || user?.name)
@@ -248,12 +220,7 @@ function CardTitle({ title, link, linkTo = '/dashboard/workouts', action }) {
 
 function Donut({ average, items }) {
   const colors = { green: '#08a966', blue: '#61b86d', orange: '#f5af17', red: '#ef5b5b' }
-  let offset = 0
-  const segments = items.map((item) => {
-    const segment = `${colors[item.tone] || colors.green} ${offset}% ${offset + item.percent}%`
-    offset += item.percent
-    return segment
-  }).join(', ')
+  const segments = buildDonutSegments(items, colors)
 
   return (
     <div className="nd-donut" style={{ '--donut': `conic-gradient(${segments || '#e8efec 0 100%'})` }}>
@@ -396,7 +363,7 @@ function normalizeHistory(points = []) {
   return Array.isArray(points) ? points : []
 }
 
-function fallbackDashboard(name = 'Gabriel Lima') {
+function _fallbackDashboard(name = 'Gabriel Lima') {
   return {
     greeting: { name, date: '2026-05-18' },
     stats: {
