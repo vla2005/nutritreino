@@ -1,9 +1,11 @@
 import { useEffect, useState } from 'react'
 import { useLocation } from 'react-router-dom'
-import { useAuth } from '../../composables/useAuth.js'
-import { useToast } from '../../composables/useToast.jsx'
-import { createProgressRecord, getProgress, getProgressAccess, grantProgressAccess, revokeProgressAccess, saveProgressFeedback } from '../../services/progress.js'
-import { normalizeAvatarUrl } from '../../utils/avatar.js'
+import { useAuth } from '@/composables/useAuth.js'
+import { useToast } from '@/composables/useToast.jsx'
+import ProgressAvatar from '@/features/progress/components/ProgressAvatar/ProgressAvatar.jsx'
+import ProgressSummaryCard from '@/features/progress/components/ProgressSummaryCard/ProgressSummaryCard.jsx'
+import { createProgressRecord, getProgress, getProgressAccess, grantProgressAccess, revokeProgressAccess, saveProgressFeedback } from '@/services/progress.js'
+import './ClientProgressPage.css'
 
 const measurementItems = [
   { key: 'waist', label: 'Cintura', icon: '📏' },
@@ -27,7 +29,7 @@ const photoItems = [
   { key: 'back', label: 'Costas' },
 ]
 
-export default function ClientProgress() {
+export default function ClientProgressPage() {
   const toast = useToast()
   const { role } = useAuth()
   const location = useLocation()
@@ -88,10 +90,10 @@ export default function ClientProgress() {
       <>
 
       <section className="progress-summary-grid">
-        <SummaryCard tone="green" icon={<ScaleIcon />} label="Peso atual" value={`${formatNumber(progress?.summary?.current_weight)} kg`} detail={currentWeightDetail(progress?.summary)} />
-        <SummaryCard tone="green" icon={<TrendIcon />} label="Variação no mês" value={`${signedNumber(progress?.summary?.month_variation)} kg`} detail={variationDetail(progress?.summary)} />
-        <SummaryCard tone="orange" icon={<TargetIcon />} label="Meta" value={progress?.summary?.target_weight ? `${formatNumber(progress.summary.target_weight)} kg` : '-'} detail={progress?.summary?.target_remaining ? `Faltam ${formatNumber(progress.summary.target_remaining)} kg` : 'Defina no próximo registro'} />
-        <SummaryCard tone="purple" icon={<CalendarIcon />} label="Último check-in" value={progress?.summary?.last_check_in_date ? relativeDate(progress.summary.last_check_in_date) : '-'} detail={formatDate(progress?.summary?.last_check_in_date)} />
+        <ProgressSummaryCard tone="green" icon={<ScaleIcon />} label="Peso atual" value={`${formatNumber(progress?.summary?.current_weight)} kg`} detail={currentWeightDetail(progress?.summary)} />
+        <ProgressSummaryCard tone="green" icon={<TrendIcon />} label="Variação no mês" value={`${signedNumber(progress?.summary?.month_variation)} kg`} detail={variationDetail(progress?.summary)} />
+        <ProgressSummaryCard tone="orange" icon={<TargetIcon />} label="Meta" value={progress?.summary?.target_weight ? `${formatNumber(progress.summary.target_weight)} kg` : '-'} detail={progress?.summary?.target_remaining ? `Faltam ${formatNumber(progress.summary.target_remaining)} kg` : 'Defina no próximo registro'} />
+        <ProgressSummaryCard tone="purple" icon={<CalendarIcon />} label="Último check-in" value={progress?.summary?.last_check_in_date ? relativeDate(progress.summary.last_check_in_date) : '-'} detail={formatDate(progress?.summary?.last_check_in_date)} />
       </section>
 
       <section className="progress-top-grid">
@@ -256,7 +258,7 @@ function ProgressAccessDialog({ onClose }) {
               <div className="progress-access-list">
                 {access.granted?.length ? access.granted.map((item) => (
                   <div key={item.professional.uuid} className="progress-access-row">
-                    <AvatarImage person={item.professional} />
+                    <ProgressAvatar person={item.professional} />
                     <div>
                       <strong>{item.professional.name}</strong>
                       <span>{professionalLabel(item.professional.speciality)} liberado em {formatDate(item.granted_at)}</span>
@@ -282,27 +284,6 @@ function ProgressAccessDialog({ onClose }) {
         )}
       </div>
     </div>
-  )
-}
-
-function AvatarImage({ person }) {
-  const avatarUrl = normalizeAvatarUrl(person?.avatar)
-
-  return avatarUrl
-    ? <img className="progress-access-avatar" src={avatarUrl} alt="" />
-    : <span className="progress-access-avatar">{initials(person?.name || 'PR')}</span>
-}
-
-function SummaryCard({ tone, icon, label, value, detail }) {
-  return (
-    <article className="progress-summary-card">
-      <span className={`is-${tone}`} aria-hidden="true">{icon}</span>
-      <div>
-        <p>{label}</p>
-        <strong>{value}</strong>
-        <small>{detail}</small>
-      </div>
-    </article>
   )
 }
 
@@ -775,8 +756,8 @@ function RecordDialog({ record, role, onSaved, onClose }) {
         <h2>Registro de {formatDate(record.record_date)}</h2>
         <p>{record.notes || 'Sem observações'}</p>
         <div className="progress-record-detail-grid">
-          <SummaryCard tone="green" icon={<ScaleIcon />} label="Peso" value={`${formatNumber(record.weight)} kg`} detail="Registro selecionado" />
-          <SummaryCard tone="orange" icon={<TargetIcon />} label="Meta" value={record.target_weight ? `${formatNumber(record.target_weight)} kg` : '-'} detail="Meta registrada" />
+          <ProgressSummaryCard tone="green" icon={<ScaleIcon />} label="Peso" value={`${formatNumber(record.weight)} kg`} detail="Registro selecionado" />
+          <ProgressSummaryCard tone="orange" icon={<TargetIcon />} label="Meta" value={record.target_weight ? `${formatNumber(record.target_weight)} kg` : '-'} detail="Meta registrada" />
         </div>
         <h3>Medidas</h3>
         <div className="progress-measure-list">
