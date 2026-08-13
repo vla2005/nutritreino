@@ -23,6 +23,8 @@ export default function ProfileSettingsPage() {
     : 'Atualize seus dados, registro e apresentacao profissional.'
 
   useEffect(() => {
+    // O formulario deve acompanhar a identidade atualizada pelo AuthProvider.
+    // eslint-disable-next-line react-hooks/set-state-in-effect
     setForm(profileToForm(user))
     setAvatarPreview('')
   }, [user])

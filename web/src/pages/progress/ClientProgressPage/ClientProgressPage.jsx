@@ -62,6 +62,8 @@ export default function ClientProgressPage() {
   }, [clientUuid, toast])
 
   useEffect(() => {
+    // O efeito e a origem do carregamento para o cliente selecionado.
+    // eslint-disable-next-line react-hooks/set-state-in-effect
     loadProgress()
   }, [loadProgress])
 
@@ -213,6 +215,8 @@ function ProgressAccessDialog({ onClose }) {
   }, [toast])
 
   useEffect(() => {
+    // O dialogo carrega as permissoes somente depois de ser montado.
+    // eslint-disable-next-line react-hooks/set-state-in-effect
     loadAccess()
   }, [loadAccess])
 
@@ -470,6 +474,8 @@ function UploadBox({ item, file, onChange }) {
 
   useEffect(() => {
     if (!file) {
+      // A remocao do arquivo tambem deve limpar o preview derivado dele.
+      // eslint-disable-next-line react-hooks/set-state-in-effect
       setPreview('')
       return undefined
     }

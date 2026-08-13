@@ -57,6 +57,8 @@ export default function PatientsPage() {
   }, [search, searchPage, toast])
 
   useEffect(() => {
+    // A consulta inicial e suas dependencias sao sincronizadas por este efeito.
+    // eslint-disable-next-line react-hooks/set-state-in-effect
     refreshPatients()
   }, [refreshPatients])
 

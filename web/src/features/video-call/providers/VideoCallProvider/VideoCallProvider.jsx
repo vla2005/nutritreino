@@ -685,6 +685,8 @@ function CallWindow({ call, remoteStream, localStream, micEnabled, cameraEnabled
 
   useEffect(() => {
     if (!call) exitVideoFullscreen().catch(() => {})
+    // A finalizacao da chamada precisa restaurar o estado visual da janela.
+    // eslint-disable-next-line react-hooks/set-state-in-effect
     if (!call) setWindowPosition(null)
     if (!call) setLocalPreviewHidden(false)
   }, [call])
