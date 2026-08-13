@@ -6,9 +6,9 @@ import RegisterPage from '@/pages/auth/RegisterPage/RegisterPage.jsx'
 import VerifyEmailPage from '@/pages/auth/VerifyEmailPage/VerifyEmailPage.jsx'
 import DashboardHomePage from '@/pages/home/DashboardHomePage/DashboardHomePage.jsx'
 import ClientProfilePage from '@/pages/patients/ClientProfilePage/ClientProfilePage.jsx'
-import MealPlans from '@/pages/dashboard/MealPlans.jsx'
+import MealPlansPage from '@/pages/nutrition/MealPlansPage/MealPlansPage.jsx'
 import Messages from '@/pages/dashboard/Messages.jsx'
-import NutritionPlanForm from '@/pages/dashboard/NutritionPlanForm.jsx'
+import NutritionPlanPage from '@/pages/nutrition/NutritionPlanPage/NutritionPlanPage.jsx'
 import ProfessionalProfilePage from '@/pages/professionals/ProfessionalProfilePage/ProfessionalProfilePage.jsx'
 import ClientProgress from '@/pages/dashboard/ClientProgress.jsx'
 import ProfileSettings from '@/pages/dashboard/ProfileSettings.jsx'
@@ -35,12 +35,12 @@ export default function AppRoutes() {
             <Route index element={<Navigate to="/dashboard/home" replace />} />
             <Route path="home" element={<DashboardHomePage />} />
             <Route path="clients/:uuid" element={<ClientProfilePage />} />
-            <Route path="meal-plans" element={<MealPlans />} />
+            <Route path="meal-plans" element={<MealPlansPage />} />
             <Route path="messages" element={<Messages />} />
             <Route path="progress" element={<ClientProgress />} />
             <Route path="settings" element={<ProfileSettings />} />
-            <Route path="plans" element={<NutritionPlanForm />} />
-            <Route path="plans/:uuid" element={<NutritionPlanForm />} />
+            <Route path="plans" element={<NutritionPlanPage />} />
+            <Route path="plans/:uuid" element={<NutritionPlanPage />} />
             <Route path="professionals/:uuid" element={<ProfessionalProfilePage />} />
             <Route path="workouts" element={<WorkoutPrograms />} />
             <Route path="workouts/new" element={<WorkoutPlanForm />} />

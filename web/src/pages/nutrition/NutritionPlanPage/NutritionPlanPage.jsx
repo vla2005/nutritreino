@@ -1,12 +1,15 @@
 import { useEffect, useMemo, useState } from 'react'
-import { Link, useLocation, useNavigate, useParams } from 'react-router-dom'
+import { useLocation, useNavigate, useParams } from 'react-router-dom'
 import AiLoadingIcon from '@/shared/components/ui/AiLoading/AiLoadingIcon.jsx'
 import AiLoadingOverlay from '@/shared/components/ui/AiLoading/AiLoadingOverlay.jsx'
 import ConfirmDialog from '@/shared/components/ui/ConfirmDialog/ConfirmDialog.jsx'
-import { useAuth } from '../../composables/useAuth.js'
-import { useToast } from '../../composables/useToast.jsx'
-import { listClients } from '../../services/clients.js'
-import { createMealPlan, generateMealPlanSuggestion, getMealPlan, updateMealPlan } from '../../services/mealPlans.js'
+import { useAuth } from '@/composables/useAuth.js'
+import { useToast } from '@/composables/useToast.jsx'
+import { listClients } from '@/services/clients.js'
+import { createMealPlan, generateMealPlanSuggestion, getMealPlan, updateMealPlan } from '@/services/mealPlans.js'
+import PlanField from './components/PlanField.jsx'
+import { ProfessionalSummaryLine, SummaryLine } from './components/PlanSummaryLine.jsx'
+import './NutritionPlanPage.css'
 
 const unitOptions = [
   { value: 'g', label: 'gramas' },
@@ -41,7 +44,7 @@ const defaultMeals = [
   },
 ]
 
-export default function NutritionPlanForm() {
+export default function NutritionPlanPage() {
   const location = useLocation()
   const navigate = useNavigate()
   const { uuid } = useParams()
@@ -642,41 +645,8 @@ function MealCard({ meal, onUpdate, onRemove, onAddFood, onUpdateFood, onRemoveF
   )
 }
 
-function PlanField({ label, className = '', children }) {
-  return (
-    <label className={`plan-field ${className}`}>
-      <span>{label}</span>
-      {children}
-    </label>
-  )
-}
-
-function SummaryLine({ label, value }) {
-  return (
-    <div>
-      <span>{label}</span>
-      <strong>{value}</strong>
-    </div>
-  )
-}
-
 function optionLabel(options, value) {
   return options.find((option) => option.value === value)?.label || '-'
-}
-
-function ProfessionalSummaryLine({ label, professional }) {
-  return (
-    <div>
-      <span>{label}</span>
-      {professional?.uuid ? (
-        <Link className="plan-professional-link" to={`/dashboard/professionals/${professional.uuid}`}>
-          {professional.name || 'Profissional'}
-        </Link>
-      ) : (
-        <strong>{professional?.name || '-'}</strong>
-      )}
-    </div>
-  )
 }
 
 function mergePatients(current, incoming) {
