@@ -4,10 +4,25 @@ import chatWallpaper from '@/assets/wpp.webp'
 import { useAuth } from '@/composables/useAuth.js'
 import { useToast } from '@/composables/useToast.jsx'
 import ChatAvatar from '@/features/messages/components/ChatAvatar/ChatAvatar.jsx'
+import PresenceStatus, { PresenceDot } from '@/features/messages/components/PresenceStatus/PresenceStatus.jsx'
 import TypingIndicator from '@/features/messages/components/TypingIndicator/TypingIndicator.jsx'
 import { getEcho, getOnlineUserUuids, leaveConversationChannel } from '@/services/echo.js'
 import { getConversation, listConversations, markConversationRead, sendMessage } from '@/services/messages.js'
 import MessageBubble, { DateSeparator } from './components/MessageBubble.jsx'
+import {
+  appendMessage,
+  applyOnlineStatus,
+  applyOnlineStatusToConversation,
+  conversationPreview,
+  emitUnreadCount,
+  formatConversationTime,
+  markMessageRead,
+  markMessagesRead,
+  messagesWithDateSeparators,
+  moveConversationToTop,
+  participantLabel,
+  upsertConversation,
+} from './utils/messageUtils.js'
 import './MessagesPage.css'
 
 export default function MessagesPage() {
@@ -314,7 +329,7 @@ export default function MessagesPage() {
               {selected?.participant ? <span className="messages-role-pill">{participantLabel(selected.participant)}</span> : null}
             </div>
             <span>
-              {participantTyping ? <TypingIndicator variant="label" /> : selected ? <StatusLabel participant={selected.participant} /> : 'Mensagens privadas'}
+              {participantTyping ? <TypingIndicator variant="label" /> : selected ? <PresenceStatus participant={selected.participant} /> : 'Mensagens privadas'}
             </span>
           </div>
           <div className="messages-chat-actions">
@@ -372,159 +387,6 @@ export default function MessagesPage() {
       </div>
     </section>
   )
-}
-
-function StatusLabel({ participant }) {
-  return (
-    <span className={`messages-status-label ${participant?.is_online ? 'is-online' : ''}`}>
-      <PresenceDot online={participant?.is_online} />
-      {participant?.is_online ? 'Online' : 'Offline'}
-    </span>
-  )
-}
-
-function PresenceDot({ online }) {
-  return <i className={`messages-presence-dot ${online ? 'is-online' : ''}`} aria-hidden="true" />
-}
-
-function applyOnlineStatus(conversations, onlineUsers) {
-  return conversations.map((conversation) => applyOnlineStatusToConversation(conversation, onlineUsers))
-}
-
-function applyOnlineStatusToConversation(conversation, onlineUsers) {
-  if (!conversation?.participant) return conversation
-
-  return {
-    ...conversation,
-    participant: {
-      ...conversation.participant,
-      is_online: onlineUsers.has(conversation.participant.uuid),
-    },
-  }
-}
-
-function appendMessage(conversation, message) {
-  if (!conversation) return conversation
-  if (conversation.messages?.some((item) => item.uuid === message.uuid)) return conversation
-  return { ...conversation, messages: [...(conversation.messages || []), message], latest_message: message, last_message_at: message.created_at }
-}
-
-function markMessagesRead(conversation, messageUuids = [], readAt = '') {
-  if (!conversation || !messageUuids?.length) return conversation
-
-  return {
-    ...conversation,
-    messages: (conversation.messages || []).map((message) => markMessageRead(message, messageUuids, readAt)),
-    latest_message: markMessageRead(conversation.latest_message, messageUuids, readAt),
-  }
-}
-
-function markMessageRead(message, messageUuids = [], readAt = '') {
-  if (!message || !messageUuids.includes(message.uuid)) return message
-  return { ...message, read_at: readAt || message.read_at }
-}
-
-function upsertConversation(conversations, conversation) {
-  const exists = conversations.some((item) => item.uuid === conversation.uuid)
-  if (!exists) return [conversation, ...conversations]
-  return conversations.map((item) => item.uuid === conversation.uuid ? { ...item, ...conversation } : item)
-}
-
-function moveConversationToTop(conversations, uuid, message, incrementUnread = false) {
-  const updated = conversations.map((item) => item.uuid === uuid ? {
-    ...item,
-    latest_message: message,
-    last_message_at: message.created_at,
-    unread_count: incrementUnread ? Number(item.unread_count || 0) + 1 : Number(item.unread_count || 0),
-  } : item)
-  return updated.sort((a, b) => new Date(b.last_message_at || b.updated_at || 0) - new Date(a.last_message_at || a.updated_at || 0))
-}
-
-function emitUnreadCount(conversations = []) {
-  const total = conversations.reduce((sum, conversation) => sum + Number(conversation.unread_count || 0), 0)
-  window.dispatchEvent(new CustomEvent('chat:unread-updated', { detail: { total } }))
-}
-
-function attachmentLabel(message) {
-  if (!message?.attachment) return ''
-  if (message.type === 'image') return 'Foto enviada'
-  return `${fileType(message.attachment.mime)} - ${formatBytes(message.attachment.size)}`
-}
-
-function conversationPreview(message) {
-  if (!message) return 'Sem mensagens ainda'
-  if (message.type === 'video_call') return 'Chamada de video'
-  return message.body || attachmentLabel(message) || 'Mensagem'
-}
-
-function fileType(mime = '') {
-  if (!mime) return 'Arquivo'
-  if (mime === 'application/pdf') return 'PDF'
-  if (mime.startsWith('image/')) return mime.replace('image/', '').toUpperCase()
-  if (mime.includes('wordprocessingml') || mime === 'application/msword') return 'DOC'
-  if (mime === 'text/plain') return 'TXT'
-  return mime.split('/').pop()?.toUpperCase() || 'Arquivo'
-}
-
-function formatBytes(bytes = 0) {
-  const value = Number(bytes || 0)
-  if (!value) return '0 KB'
-  if (value < 1024 * 1024) return `${Math.max(1, Math.round(value / 1024))} KB`
-  return `${(value / 1024 / 1024).toLocaleString('pt-BR', { maximumFractionDigits: 1 })} MB`
-}
-
-function participantLabel(participant) {
-  if (participant?.speciality === 'nutritionist') return 'Nutricionista'
-  if (participant?.speciality === 'trainer') return 'Treinador'
-  return participant?.role === 'client' ? 'Aluno' : 'Contato'
-}
-
-function formatConversationTime(value) {
-  if (!value) return ''
-  const date = new Date(value)
-  if (Number.isNaN(date.getTime())) return ''
-  return date.toLocaleDateString('pt-BR', { day: '2-digit', month: '2-digit' })
-}
-
-function messagesWithDateSeparators(messages = []) {
-  const items = []
-  let lastKey = ''
-
-  messages.forEach((message) => {
-    const key = dateKey(message.created_at)
-    if (key && key !== lastKey) {
-      items.push({ kind: 'date', key: `date-${key}`, label: dateSeparatorLabel(message.created_at) })
-      lastKey = key
-    }
-
-    items.push({ kind: 'message', message })
-  })
-
-  return items
-}
-
-function dateKey(value) {
-  const date = new Date(value)
-  if (Number.isNaN(date.getTime())) return ''
-  return `${date.getFullYear()}-${String(date.getMonth() + 1).padStart(2, '0')}-${String(date.getDate()).padStart(2, '0')}`
-}
-
-function dateSeparatorLabel(value) {
-  const date = new Date(value)
-  if (Number.isNaN(date.getTime())) return ''
-
-  const today = startOfDay(new Date())
-  const target = startOfDay(date)
-  const diffDays = Math.round((today - target) / 86400000)
-
-  if (diffDays === 0) return 'Hoje'
-  if (diffDays === 1) return 'Ontem'
-
-  return date.toLocaleDateString('pt-BR')
-}
-
-function startOfDay(date) {
-  return new Date(date.getFullYear(), date.getMonth(), date.getDate())
 }
 
 function SearchIcon() {
