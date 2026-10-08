@@ -548,6 +548,8 @@
 
 .progress-record-table {
   display: grid;
+  min-width: 0;
+  overflow-x: auto;
   margin-top: 22px;
 }
 
@@ -1712,6 +1714,5 @@
   font-size: 14px;
   font-weight: 900;
 }
-
 
 

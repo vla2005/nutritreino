@@ -486,11 +486,13 @@
 
   .video-call-controls {
     justify-content: space-between;
+    flex-wrap: wrap;
   }
 
   .video-call-controls button {
     width: 42px;
     height: 42px;
+    flex-shrink: 0;
   }
 
   .video-call-local {
@@ -501,5 +503,18 @@
 
   .video-call-window.is-maximized .video-call-local {
     width: clamp(104px, 30vw, 150px);
+  }
+}
+
+@media (max-width: 380px) {
+  .video-call-controls {
+    display: grid;
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+    justify-items: center;
+  }
+
+  .video-call-controls button {
+    width: 44px;
+    height: 44px;
   }
 }

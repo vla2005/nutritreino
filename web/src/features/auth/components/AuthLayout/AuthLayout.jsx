@@ -1,5 +1,7 @@
 import AuthHero from '../AuthHero/AuthHero.jsx'
+import AuthBrand from '../AuthBrand/AuthBrand.jsx'
 import './AuthLayout.css'
+import './AuthClinicTheme.css'
 
 export default function AuthLayout({
   children,
@@ -21,7 +23,10 @@ export default function AuthLayout({
       />
 
       <section className="login-auth" aria-label={formAriaLabel}>
-        <div className={`login-form-shell ${shellClassName}`.trim()}>{children}</div>
+        <div className={`login-form-shell ${shellClassName}`.trim()}>
+          <div className="login-mobile-brand"><AuthBrand /></div>
+          {children}
+        </div>
       </section>
     </main>
   )

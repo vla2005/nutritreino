@@ -4,4 +4,7 @@
 *.log
 *.zip
 .env.docker
+tmp
+output
+design-qa.md
 

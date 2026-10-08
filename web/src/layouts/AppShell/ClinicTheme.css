@@ -1,0 +1,598 @@
+/* The approved clinical palette is scoped to the authenticated shell. */
+.dashboard-layout {
+  --layout-bg: var(--nt-canvas);
+  --panel-bg: #fff;
+  --panel-bg-strong: #fff;
+  --panel-muted: #edf3ef;
+  --text-primary: var(--nt-ink);
+  --text-secondary: var(--nt-muted);
+  --text-muted: var(--nt-muted);
+  --border-color: var(--nt-line);
+  --border-soft: #eaf0ec;
+  --hover-bg: var(--nt-green-soft);
+  --hover-strong: #e3efe7;
+  --accent-soft: var(--nt-green-soft);
+  color-scheme: light;
+  background: var(--nt-canvas);
+  color: var(--nt-ink);
+}
+.dashboard-content {
+  margin-left: 240px;
+}
+.dashboard-content.is-sidebar-collapsed {
+  margin-left: 76px;
+}
+.dashboard-layout .dashboard-main {
+  width: 100%;
+  max-width: 1640px;
+  padding: 34px 34px 32px;
+  margin: 0 auto;
+}
+.dashboard-layout .dashboard-sidebar {
+  width: 240px;
+  background: #fff;
+  border-color: var(--nt-line);
+}
+.dashboard-layout .dashboard-sidebar.is-collapsed {
+  width: 76px;
+}
+.dashboard-layout .dashboard-brand {
+  padding: 30px 23px 32px;
+  gap: 8px;
+  font-family: var(--font-title);
+  font-size: 26px;
+  font-weight: 600;
+  letter-spacing: -0.7px;
+}
+.dashboard-layout .dashboard-brand-mark {
+  width: 32px;
+  height: 34px;
+  border-radius: 0;
+  background: transparent;
+  color: var(--nt-green);
+}
+.dashboard-layout .dashboard-brand-mark svg {
+  width: 34px;
+  height: 34px;
+}
+.dashboard-layout .dashboard-nav {
+  padding: 0 17px 24px;
+}
+.dashboard-layout .dashboard-nav-link {
+  min-height: 48px;
+  margin-bottom: 9px;
+  padding: 12px 15px;
+  gap: 16px;
+  border-radius: 9px;
+  color: #637368;
+  font-size: 14px;
+  line-height: 1.4;
+  font-weight: 450;
+}
+.dashboard-layout .dashboard-nav-link.is-active {
+  background: var(--nt-green-soft);
+  color: var(--nt-green-dark);
+  font-weight: 600;
+}
+.dashboard-layout .dashboard-nav-link:hover {
+  background: #f3f8f5;
+  color: var(--nt-green-dark);
+}
+.dashboard-layout .dashboard-sidebar.is-collapsed .dashboard-brand {
+  padding: 30px 21px 32px;
+}
+.dashboard-layout .dashboard-sidebar.is-collapsed .dashboard-nav {
+  padding: 0 10px;
+}
+.dashboard-layout .dashboard-sidebar.is-collapsed .dashboard-nav-link {
+  padding: 12px 18px;
+}
+.dashboard-layout .dashboard-sidebar-user {
+  min-height: 76px;
+  padding: 18px 17px 10px;
+  border-color: var(--nt-line);
+}
+.dashboard-layout .dashboard-user-copy p {
+  color: var(--nt-ink);
+  font-size: 12px;
+  font-weight: 600;
+}
+.dashboard-layout .dashboard-user-copy span {
+  color: var(--nt-muted);
+  font-size: 11px;
+}
+.dashboard-sidebar-footer {
+  display: grid;
+  gap: 4px;
+  padding: 0 20px 26px;
+}
+.dashboard-sidebar-footer a,
+.dashboard-sidebar-footer button {
+  display: flex;
+  align-items: center;
+  gap: 14px;
+  min-height: 38px;
+  border: 0;
+  background: transparent;
+  border-radius: 8px;
+  padding: 8px;
+  color: var(--nt-muted);
+  font-size: 13px;
+  text-align: left;
+  text-decoration: none;
+}
+.dashboard-sidebar-footer a:hover,
+.dashboard-sidebar-footer button:hover {
+  color: var(--nt-green-dark);
+  background: var(--nt-green-soft);
+}
+.dashboard-layout .dashboard-sidebar-toggle {
+  top: 37px;
+  width: 22px;
+  height: 22px;
+  opacity: 0.65;
+  box-shadow: none;
+}
+.dashboard-layout :is(h1, h2, h3) {
+  font-family: var(--font-title);
+}
+.dashboard-layout
+  :is(button, a, summary, input, select, textarea):focus-visible {
+  outline: 2px solid var(--nt-green);
+  outline-offset: 3px;
+}
+.dashboard-layout
+  :is(.people-hero, .plans-hero, .workouts-hero, .progress-header) {
+  grid-template-columns: minmax(0, 1fr) auto;
+  gap: 20px;
+}
+.dashboard-layout
+  :is(
+    .people-hero-icon,
+    .plans-hero-icon,
+    .workouts-hero-icon,
+    .progress-title-icon
+  ) {
+  display: none;
+}
+.dashboard-layout
+  :is(
+    .people-hero,
+    .plans-hero,
+    .workouts-hero,
+    .progress-header,
+    .dashboard-header
+  )
+  h1 {
+  font-size: 32px;
+  font-weight: 600;
+  color: var(--nt-ink);
+  letter-spacing: -0.8px;
+  line-height: 1.2;
+}
+.dashboard-layout
+  :is(.people-hero, .plans-hero, .workouts-hero, .progress-header)
+  p {
+  margin-top: 6px;
+  font-size: 14px;
+  font-weight: 400;
+  color: var(--nt-muted);
+}
+.dashboard-layout
+  :is(
+    .people-new-button,
+    .plans-new-button,
+    .workouts-new-button,
+    .progress-new-button,
+    .dashboard-primary-action,
+    .plan-save-button
+  ) {
+  background: var(--nt-green);
+  box-shadow: none;
+  font-weight: 600;
+  border-radius: 9px;
+}
+.dashboard-layout
+  :is(
+    .people-new-button,
+    .plans-new-button,
+    .workouts-new-button,
+    .progress-new-button,
+    .dashboard-primary-action,
+    .plan-save-button
+  ):hover {
+  background: var(--nt-green-dark);
+}
+.dashboard-layout
+  :is(
+    .people-stat-grid,
+    .plans-stat-grid,
+    .workouts-stat-grid,
+    .progress-summary-grid
+  ) {
+  gap: 0;
+  padding: 14px 0;
+}
+.dashboard-layout
+  :is(
+    .people-stat-card,
+    .plans-stat-card,
+    .workouts-stat-card,
+    .progress-summary-card
+  ) {
+  display: block;
+  min-height: 0;
+  border: 0;
+  border-left: 1px solid var(--nt-line);
+  border-radius: 0;
+  padding: 0 24px;
+  background: transparent;
+  box-shadow: none;
+}
+.dashboard-layout
+  :is(
+    .people-stat-card,
+    .plans-stat-card,
+    .workouts-stat-card,
+    .progress-summary-card
+  ):first-child {
+  border-left: 0;
+  padding-left: 8px;
+}
+.dashboard-layout
+  :is(
+    .people-stat-icon,
+    .plans-stat-icon,
+    .workouts-stat-icon,
+    .progress-summary-card > span
+  ) {
+  display: none;
+}
+.dashboard-layout
+  :is(.people-stat-card, .plans-stat-card, .workouts-stat-card)
+  strong {
+  font-size: 30px;
+  font-weight: 600;
+  color: var(--nt-ink);
+  line-height: 1.25;
+  letter-spacing: -0.5px;
+  overflow-wrap: anywhere;
+}
+.dashboard-layout
+  :is(.people-stat-card, .plans-stat-card, .workouts-stat-card)
+  p {
+  margin-top: 2px;
+  font-size: 14px;
+  font-weight: 450;
+}
+.dashboard-layout
+  :is(
+    .people-stat-card,
+    .plans-stat-card,
+    .workouts-stat-card,
+    .progress-summary-card
+  )
+  small {
+  color: var(--nt-muted);
+  font-weight: 400;
+  line-height: 1.5;
+}
+.dashboard-layout .progress-summary-card > div {
+  display: flex;
+  flex-direction: column;
+}
+.dashboard-layout .progress-summary-card strong {
+  order: -1;
+  font-size: 30px;
+  font-weight: 600;
+  letter-spacing: -0.7px;
+  line-height: 1.25;
+}
+.dashboard-layout .progress-summary-card p {
+  margin: 4px 0 0;
+  color: var(--nt-ink);
+  font-weight: 450;
+}
+.dashboard-layout
+  :is(
+    .plans-panel,
+    .people-panel,
+    .workouts-panel,
+    .progress-card,
+    .settings-avatar-card,
+    .settings-section,
+    .plan-card,
+    .client-card,
+    .professional-card,
+    .dashboard-table-card
+  ) {
+  border-color: var(--nt-line);
+  border-radius: 14px;
+  box-shadow: 0 3px 12px #20352d02;
+}
+.dashboard-layout
+  :is(.progress-card, .settings-section, .settings-avatar-card)
+  h2 {
+  color: var(--nt-ink);
+  font-size: 22px;
+  font-weight: 550;
+  letter-spacing: -0.35px;
+}
+.dashboard-layout
+  :is(
+    .people-list-page,
+    .plans-list-page,
+    .workouts-list-page,
+    .progress-page
+  ) {
+  gap: 28px;
+}
+.dashboard-layout :is(.progress-top-grid, .progress-middle-grid) {
+  grid-template-columns: minmax(0, 1.65fr) minmax(0, 1fr);
+  gap: 22px;
+}
+.dashboard-layout .progress-bottom-grid {
+  grid-template-columns: minmax(0, 1.5fr) minmax(0, 1fr);
+  gap: 22px;
+}
+.dashboard-layout
+  :is(.progress-card-head button, .progress-card-title-button span) {
+  color: var(--nt-green-dark);
+  font-weight: 600;
+}
+.dashboard-layout :is(.form-label, .modal-label) {
+  color: var(--nt-ink);
+  text-transform: none;
+  letter-spacing: 0;
+  font-size: 13px;
+}
+.dashboard-layout :is(.modal-input, .input-field) {
+  background: #fff;
+  color: var(--nt-ink);
+  border-color: var(--nt-line);
+}
+.dashboard-layout :is(.input-field, .modal-input):focus {
+  border-color: var(--nt-green);
+  box-shadow: 0 0 0 3px #28856215;
+}
+.dashboard-layout :is(.input-field, .modal-input)::placeholder {
+  color: #87938b;
+}
+.dashboard-layout :is(.input-field, .modal-input) option {
+  color: var(--nt-ink);
+  background: #fff;
+}
+.dashboard-layout .btn-primary {
+  background: var(--nt-green);
+  box-shadow: none;
+}
+.dashboard-layout
+  :is(.plans-table, .workouts-table, .people-table, .dashboard-table)
+  th {
+  font-weight: 500;
+  font-size: 12px;
+  color: var(--nt-muted);
+  text-transform: none;
+  letter-spacing: 0;
+}
+.dashboard-layout :is(.plans-table, .workouts-table, .people-table) td {
+  font-weight: 450;
+}
+.dashboard-layout :is(.plans-table, .workouts-table, .people-table) strong {
+  font-weight: 600;
+}
+.dashboard-layout :is(.plans-plan-icon, .workouts-program-icon) {
+  background: var(--nt-green-soft);
+  color: var(--nt-green);
+}
+@media (min-width: 1800px) {
+  .dashboard-layout .dashboard-main {
+    padding-top: 44px;
+  }
+}
+@media (max-width: 1000px) {
+  .dashboard-layout
+    :is(.progress-top-grid, .progress-middle-grid, .progress-bottom-grid) {
+    grid-template-columns: minmax(0, 1fr);
+  }
+  .dashboard-layout
+    :is(
+      .people-stat-card,
+      .plans-stat-card,
+      .workouts-stat-card,
+      .progress-summary-card
+    ) {
+    padding: 0 16px;
+  }
+  .dashboard-layout
+    :is(
+      .people-stat-card,
+      .plans-stat-card,
+      .workouts-stat-card,
+      .progress-summary-card
+    )
+    strong {
+    font-size: 26px;
+  }
+}
+@media (max-width: 767px) {
+  .dashboard-layout
+    :is(.people-stat-card, .plans-stat-card, .workouts-stat-card):last-child
+    strong {
+    font-size: 20px;
+    white-space: nowrap;
+    letter-spacing: -0.5px;
+  }
+  .dashboard-layout
+    :is(.people-mobile-list, .plans-mobile-list, .workouts-mobile-list) {
+    display: grid;
+  }
+  .dashboard-layout
+    :is(.people-panel-head, .plans-panel-head, .workouts-panel-head) {
+    flex-wrap: wrap;
+    gap: 14px;
+    padding: 18px;
+  }
+  .dashboard-layout :is(.people-search, .plans-search, .workouts-search) {
+    width: 100%;
+    min-height: 42px;
+    border: 1px solid var(--nt-line);
+    border-radius: 9px;
+    padding: 0 12px;
+    justify-content: flex-start;
+  }
+  .dashboard-layout :is(.people-search, .plans-search, .workouts-search) input {
+    display: block;
+    min-width: 0;
+  }
+  .dashboard-layout :is(.plans-panel-tools, .workouts-panel-tools) {
+    width: 100%;
+  }
+  .dashboard-layout :is(.plans-panel-tools, .workouts-panel-tools) > button {
+    width: 42px;
+    min-width: 42px;
+    height: 42px;
+    padding: 0;
+    flex-shrink: 0;
+  }
+  .dashboard-layout :is(.plans-panel-tools, .workouts-panel-tools) button svg {
+    flex-shrink: 0;
+  }
+  .dashboard-layout :is(.plans-filter-bar, .workouts-filter-bar) {
+    grid-template-columns: minmax(0, 1fr);
+  }
+  .dashboard-layout .patient-modal {
+    display: flex;
+    flex-direction: column;
+    max-height: calc(100dvh - 36px);
+  }
+  .dashboard-layout .patient-modal-body {
+    min-height: 0;
+    overflow-y: auto;
+  }
+  .dashboard-layout :is(.patient-field-grid, .settings-grid) {
+    grid-template-columns: minmax(0, 1fr);
+  }
+  .dashboard-layout .settings-avatar-card {
+    grid-template-columns: minmax(0, 1fr);
+  }
+  .dashboard-layout .messages-page:not(.has-selected) {
+    height: auto;
+    max-height: none;
+    grid-template-columns: minmax(0, 1fr);
+    overflow: visible;
+  }
+  .dashboard-layout .messages-page.has-selected {
+    grid-template-columns: minmax(0, 1fr);
+  }
+  .dashboard-layout .dashboard-main:has(.messages-page:not(.has-selected)) {
+    padding: 28px 18px calc(110px + env(safe-area-inset-bottom));
+    overflow-y: auto;
+  }
+  .dashboard-layout .messages-sidebar-head {
+    padding: 0;
+  }
+  .dashboard-layout .messages-chat {
+    grid-template-rows: 61px minmax(0, 1fr) auto;
+  }
+  .dashboard-layout .messages-chat-head {
+    min-height: 61px;
+  }
+  .dashboard-layout .messages-chat-back {
+    display: grid;
+  }
+  .dashboard-layout .dashboard-sidebar {
+    visibility: hidden;
+  }
+  .dashboard-layout .dashboard-sidebar.is-mobile-open {
+    visibility: visible;
+  }
+  .dashboard-layout .dashboard-sidebar-toggle {
+    display: none;
+  }
+  .dashboard-layout .dashboard-sidebar-overlay {
+    display: grid;
+  }
+  .dashboard-content,
+  .dashboard-content.is-sidebar-collapsed {
+    margin-left: 0;
+  }
+  .dashboard-layout .dashboard-main {
+    padding: 28px 18px calc(110px + env(safe-area-inset-bottom));
+  }
+  .dashboard-layout
+    :is(.people-hero, .plans-hero, .workouts-hero, .progress-header) {
+    grid-template-columns: minmax(0, 1fr);
+    gap: 18px;
+  }
+  .dashboard-layout
+    :is(.people-hero, .plans-hero, .workouts-hero, .progress-header)
+    h1 {
+    font-size: 28px;
+  }
+  .dashboard-layout
+    :is(.people-hero, .plans-hero, .workouts-hero, .progress-header)
+    > div {
+    padding-left: 0;
+  }
+  .dashboard-layout
+    :is(
+      .people-stat-grid,
+      .plans-stat-grid,
+      .workouts-stat-grid,
+      .progress-summary-grid
+    ) {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 22px 0;
+  }
+  .dashboard-layout
+    :is(
+      .people-stat-card,
+      .plans-stat-card,
+      .workouts-stat-card,
+      .progress-summary-card
+    ):nth-child(odd) {
+    border: 0;
+    padding-left: 0;
+  }
+  .dashboard-layout
+    :is(
+      .people-stat-card,
+      .plans-stat-card,
+      .workouts-stat-card,
+      .progress-summary-card
+    ) {
+    padding: 0 14px;
+  }
+  .dashboard-layout .dashboard-bottom-nav {
+    display: grid;
+    border-color: var(--nt-line);
+    box-shadow: 0 6px 24px #20352d12;
+    border-radius: 17px;
+  }
+  .dashboard-layout .dashboard-bottom-link.is-active {
+    background: var(--nt-green-soft);
+    color: var(--nt-green-dark);
+  }
+  .dashboard-layout:has(.messages-page.has-selected) .dashboard-main {
+    padding: 0;
+  }
+}
+@media (prefers-reduced-motion: reduce) {
+  .dashboard-layout *,
+  .dashboard-layout *::before,
+  .dashboard-layout *::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+    scroll-behavior: auto !important;
+  }
+}
+
+@media (max-width: 380px) {
+  .dashboard-layout
+    :is(.people-stat-card, .plans-stat-card, .workouts-stat-card):last-child
+    strong {
+    font-size: 17px;
+  }
+}

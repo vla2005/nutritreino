@@ -4,8 +4,8 @@
   place-content: center;
   justify-items: center;
   gap: 12px;
-  background: var(--layout-bg);
-  color: var(--text-secondary);
+  background: var(--nt-canvas);
+  color: var(--nt-muted);
 }
 
 .route-fallback span {

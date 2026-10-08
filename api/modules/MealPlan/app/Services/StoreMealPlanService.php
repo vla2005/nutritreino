@@ -69,7 +69,7 @@ class StoreMealPlanService
     {
         $belongsToProfessional = $client->professionals()
             ->where('professionals.id', $user->professional->id)
-            ->wherePivot('status', 'active')
+            ->wherePivotIn('status', ['active', 'pending_invite'])
             ->exists();
 
         if (! $belongsToProfessional) {

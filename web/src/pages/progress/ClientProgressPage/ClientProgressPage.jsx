@@ -1,6 +1,7 @@
 import { useCallback, useEffect, useState } from 'react'
 import { useLocation } from 'react-router-dom'
 import { useAuth } from '@/composables/useAuth.js'
+import { PersonSimpleIcon, RulerIcon, TShirtIcon, BarbellIcon } from '@phosphor-icons/react'
 import { useToast } from '@/composables/useToast.jsx'
 import ProgressAvatar from '@/features/progress/components/ProgressAvatar/ProgressAvatar.jsx'
 import ProgressSummaryCard from '@/features/progress/components/ProgressSummaryCard/ProgressSummaryCard.jsx'
@@ -12,11 +13,11 @@ import { createProgressRecord, getProgress, getProgressAccess, grantProgressAcce
 import './ClientProgressPage.css'
 
 const measurementItems = [
-  { key: 'waist', label: 'Cintura', icon: '📏' },
-  { key: 'hip', label: 'Quadril', icon: '🩳' },
-  { key: 'chest', label: 'Peito', icon: '👕' },
-  { key: 'arm', label: 'Braço', icon: '💪' },
-  { key: 'thigh', label: 'Coxa', icon: '🦵' },
+  { key: 'waist', label: 'Cintura', icon: <RulerIcon size={20} /> },
+  { key: 'hip', label: 'Quadril', icon: <PersonSimpleIcon size={20} /> },
+  { key: 'chest', label: 'Peito', icon: <TShirtIcon size={20} /> },
+  { key: 'arm', label: 'Braço', icon: <BarbellIcon size={20} /> },
+  { key: 'thigh', label: 'Coxa', icon: <PersonSimpleIcon size={20} /> },
 ]
 
 const checkItems = [
@@ -177,7 +178,7 @@ function ProgressHeader({ role, progress, onNew, onManageAccess }) {
   const clientName = progress?.client?.name
   const title = role === 'professional'
     ? `Progresso de ${clientName || 'cliente'}`
-    : `Olá, ${firstNameFrom(fullName || clientName || 'Cliente')}! 👋`
+    : `Olá, ${firstNameFrom(fullName || clientName || 'Cliente')}`
 
   return (
     <header className="progress-header">

@@ -7,6 +7,7 @@ import { joinOnlineUsers, leaveOnlineUsers } from '@/services/echo.js'
 import MobileBottomNav from './components/MobileBottomNav.jsx'
 import Sidebar from './components/Sidebar.jsx'
 import './AppShell.css'
+import './ClinicTheme.css'
 
 export default function AppShell() {
   const [sidebarCollapsed, setSidebarCollapsed] = useState(false)
@@ -46,7 +47,7 @@ export default function AppShell() {
           onCloseMobile={() => setMobileSidebarOpen(false)}
           onToggle={() => setSidebarCollapsed((current) => !current)}
         />
-        <div className={`flex min-w-0 flex-1 flex-col transition-[margin-left] duration-300 md:ml-[262px] ${sidebarCollapsed ? 'md:!ml-[76px]' : ''}`}>
+        <div className={`dashboard-content flex min-w-0 flex-1 flex-col ${sidebarCollapsed ? 'is-sidebar-collapsed' : ''}`}>
           <main className="dashboard-main flex-1 overflow-y-auto">
             <Outlet />
           </main>

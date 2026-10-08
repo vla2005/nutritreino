@@ -1,0 +1,113 @@
+.login-page {
+  background: var(--nt-canvas);
+  color: var(--nt-ink);
+}
+.login-mobile-brand {
+  display: none;
+}
+.login-page .login-hero {
+  background: #226d50;
+}
+.login-page .login-auth {
+  background: var(--nt-canvas);
+}
+.login-page .login-brand {
+  font-family: var(--font-title);
+  font-size: 27px;
+  font-weight: 500;
+}
+.login-page .login-brand-mark {
+  background: transparent;
+  color: #fff;
+}
+.login-page .password-toggle {
+  color: var(--nt-muted);
+  min-width: 32px;
+  min-height: 32px;
+}
+.login-page .password-toggle:hover {
+  color: var(--nt-green-dark);
+}
+.login-page .login-orb {
+  display: none;
+}
+.login-page .login-hero-content h1 {
+  font-family: var(--font-title);
+  font-weight: 500;
+  font-size: 40px;
+  letter-spacing: -0.8px;
+  line-height: 1.15;
+}
+.login-page .login-hero-content p {
+  font-weight: 400;
+}
+.login-page .login-form-shell h2 {
+  font-family: var(--font-title);
+  color: var(--nt-ink);
+  font-weight: 550;
+  letter-spacing: -0.6px;
+}
+.login-page :is(.form-label, .modal-label) {
+  text-transform: none;
+  letter-spacing: 0;
+  color: #405448;
+  font-size: 13px;
+  font-weight: 500;
+}
+.login-page .input-field {
+  border-color: var(--nt-line);
+  background: #fff;
+  color: var(--nt-ink);
+  border-radius: 9px;
+}
+.login-page .input-field:focus {
+  border-color: var(--nt-green);
+  background: #fff;
+  box-shadow: 0 0 0 3px #28856212;
+}
+.login-page .input-field::placeholder {
+  color: #819087;
+}
+.login-page .input-field option {
+  background: #fff;
+  color: var(--nt-ink);
+}
+.login-page .btn-primary {
+  background: var(--nt-green);
+  border: 0;
+  box-shadow: none;
+  min-height: 46px;
+  font-weight: 600;
+  letter-spacing: 0;
+}
+.login-page .btn-primary:hover:not(:disabled) {
+  background: var(--nt-green-dark);
+  box-shadow: none;
+  transform: none;
+}
+.login-page :is(button, a, input, select):focus-visible {
+  outline: 2px solid var(--nt-green);
+  outline-offset: 3px;
+}
+@media (max-width: 900px) {
+  .login-page {
+    grid-template-columns: minmax(0, 1fr);
+  }
+  .login-page .login-hero {
+    display: none;
+  }
+  .login-page .login-auth {
+    padding: 36px 24px;
+  }
+  .login-page .login-form-shell {
+    transform: none;
+  }
+  .login-page .login-mobile-brand {
+    display: block;
+    margin-bottom: 38px;
+    color: var(--nt-ink);
+  }
+  .login-page .login-mobile-brand .login-brand-mark {
+    color: var(--nt-green);
+  }
+}
