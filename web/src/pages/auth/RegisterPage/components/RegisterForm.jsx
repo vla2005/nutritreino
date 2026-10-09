@@ -118,8 +118,7 @@ export default function RegisterForm() {
       })
 
       await axios.post(`${API_URL}/user/register`, payload)
-      toast.success('Usuario cadastrado com sucesso!')
-      window.setTimeout(() => navigate('/login'), 500)
+      navigate('/check-email', { replace: true, state: { email: form.email.trim() } })
     } catch (error) {
       const apiErrors = apiErrorsToFormErrors(error)
       setErrors(apiErrors)

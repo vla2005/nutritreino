@@ -9,6 +9,7 @@ const AppShell = lazy(() => import('@/layouts/AppShell/AppShell.jsx'))
 const AcceptInvitePage = lazy(() => import('@/pages/invitations/AcceptInvitePage/AcceptInvitePage.jsx'))
 const LoginPage = lazy(() => import('@/pages/auth/LoginPage/LoginPage.jsx'))
 const RegisterPage = lazy(() => import('@/pages/auth/RegisterPage/RegisterPage.jsx'))
+const CheckEmailPage = lazy(() => import('@/pages/auth/CheckEmailPage/CheckEmailPage.jsx'))
 const VerifyEmailPage = lazy(() => import('@/pages/auth/VerifyEmailPage/VerifyEmailPage.jsx'))
 const DashboardHomePage = lazy(() => import('@/pages/home/DashboardHomePage/DashboardHomePage.jsx'))
 const ClientProfilePage = lazy(() => import('@/pages/patients/ClientProfilePage/ClientProfilePage.jsx'))
@@ -29,6 +30,7 @@ export default function AppRoutes() {
       <Route path="/" element={<Navigate to="/dashboard" replace />} />
       <Route path="/login" element={<LoginPage />} />
       <Route path="/register" element={<RegisterPage />} />
+      <Route path="/check-email" element={<CheckEmailPage />} />
       <Route path="/verify-email" element={<VerifyEmailPage />} />
       <Route path="/accept-invite" element={<AcceptInvitePage />} />
 

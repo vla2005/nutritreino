@@ -1,0 +1,126 @@
+.check-email-page .check-email-shell {
+  width: min(100%, 440px);
+  min-width: 0;
+  transform: none;
+}
+
+.check-email-content {
+  min-width: 0;
+}
+
+.check-email-icon {
+  display: grid;
+  width: 76px;
+  height: 76px;
+  margin-bottom: 28px;
+  place-items: center;
+  border: 1px solid #c7dfd2;
+  border-radius: 22px;
+  background: #e5f1e9;
+  color: var(--nt-green-dark, #226d50);
+}
+
+.check-email-page .check-email-header {
+  margin-bottom: 24px;
+}
+
+.check-email-page .check-email-header h2 {
+  margin-bottom: 16px;
+  font-size: clamp(26px, 2.5vw, 32px);
+  line-height: 1.2;
+  text-wrap: balance;
+}
+
+.check-email-page .check-email-header p {
+  margin: 0;
+  color: var(--nt-muted, #637569);
+  font-size: 15px;
+  line-height: 1.65;
+}
+
+.check-email-address {
+  display: block;
+  margin-top: 10px;
+  color: var(--nt-green-dark, #226d50);
+  font-size: 16px;
+  line-height: 1.5;
+  overflow-wrap: anywhere;
+}
+
+.check-email-steps {
+  display: grid;
+  gap: 14px;
+  margin: 0 0 26px;
+  padding-left: 24px;
+  color: var(--nt-ink, #152d20);
+  font-size: 14px;
+  line-height: 1.6;
+}
+
+.check-email-steps li {
+  padding-left: 6px;
+}
+
+.check-email-steps li::marker {
+  color: var(--nt-green-dark, #226d50);
+  font-weight: 600;
+}
+
+.check-email-hint {
+  display: flex;
+  align-items: flex-start;
+  gap: 10px;
+  margin-bottom: 26px;
+  padding: 16px;
+  border-left: 3px solid #b0cebd;
+  border-radius: 0 9px 9px 0;
+  background: #edf2ed;
+  color: #405448;
+}
+
+.check-email-hint svg {
+  flex-shrink: 0;
+  margin-top: 2px;
+}
+
+.check-email-hint p {
+  margin: 0;
+  font-size: 13px;
+  line-height: 1.65;
+}
+
+.check-email-login {
+  display: flex;
+  min-height: 48px;
+  align-items: center;
+  justify-content: center;
+  padding: 12px 18px;
+  border-radius: 9px;
+  background: var(--nt-green, #288562);
+  color: #fff;
+  font-size: 14px;
+  font-weight: 600;
+  text-align: center;
+  text-decoration: none;
+}
+
+.check-email-login:hover {
+  background: var(--nt-green-dark, #226d50);
+}
+
+.check-email-footnote {
+  margin: 12px 0 0;
+  color: var(--nt-muted, #637569);
+  font-size: 12px;
+  line-height: 1.6;
+  text-align: center;
+}
+
+@media (max-width: 640px) {
+  .check-email-icon {
+    width: 64px;
+    height: 64px;
+    margin-bottom: 24px;
+    border-radius: 18px;
+  }
+}
