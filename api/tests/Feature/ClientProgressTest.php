@@ -11,7 +11,7 @@ use Modules\User\Models\User;
 
 uses(RefreshDatabase::class);
 
-test('a professional can create and view client progress only after client grants access', function () {
+test('a client records progress and professionals can view and give feedback only with granted access', function () {
     Storage::fake('public');
 
     $professionalUser = User::create([
@@ -90,8 +90,6 @@ test('a professional can create and view client progress only after client grant
     ])->assertCreated()
         ->assertJsonPath('data.professional.uuid', $professional->uuid);
 
-    Sanctum::actingAs($professionalUser);
-
     $response = $this->post('/api/progress', $payload);
 
     $response->assertCreated()
@@ -100,10 +98,16 @@ test('a professional can create and view client progress only after client grant
 
     expect($client->fresh()->weight)->toBe('78.4');
 
+    Sanctum::actingAs($professionalUser);
+
     $this->getJson('/api/progress?client_uuid='.$client->uuid)
         ->assertOk()
         ->assertJsonPath('data.summary.current_weight', 78.4)
         ->assertJsonPath('data.measurements.0.type', 'waist');
+
+    $this->postJson('/api/progress/records/'.$response->json('data.uuid').'/feedback', [
+        'feedback' => 'Bom progresso. Continue o acompanhamento.',
+    ])->assertOk()->assertJsonPath('data.feedbacks.0.text', 'Bom progresso. Continue o acompanhamento.');
 
     Sanctum::actingAs($clientUser);
 

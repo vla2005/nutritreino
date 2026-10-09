@@ -1,4 +1,4 @@
-.env
+.env*
 .git
 .github
 .idea
@@ -6,3 +6,7 @@
 dist
 node_modules
 npm-debug.log*
+coverage
+playwright-report
+test-results
+*.log

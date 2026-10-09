@@ -76,6 +76,8 @@ services:
       database:
         condition: service_healthy
     restart: "no"
+    healthcheck:
+      disable: true
 
   api:
     <<: *api-service
@@ -86,9 +88,9 @@ services:
       migrate:
         condition: service_completed_successfully
     healthcheck:
-      test: ["CMD", "wget", "-qO-", "http://127.0.0.1:8080/up"]
+      test: ["CMD", "php", "/usr/local/bin/nutritreino-healthcheck.php", "api"]
       interval: 10s
-      timeout: 3s
+      timeout: 5s
       retries: 5
       start_period: 10s
 
@@ -96,7 +98,11 @@ services:
     <<: *api-service
     command: ["php", "artisan", "queue:work", "--sleep=1", "--tries=3", "--timeout=90", "--max-time=3600"]
     healthcheck:
-      disable: true
+      test: ["CMD", "php", "/usr/local/bin/nutritreino-healthcheck.php", "queue"]
+      interval: 30s
+      timeout: 5s
+      retries: 3
+      start_period: 20s
     stop_grace_period: 100s
     depends_on:
       migrate:

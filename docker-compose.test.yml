@@ -1,0 +1,32 @@
+# Standalone test project: no production volumes, ports, SMTP or AI calls.
+name: nutritreino-tests
+services:
+  database:
+    image: mysql:8.4
+    environment:
+      MYSQL_DATABASE: nutritreino_test
+      MYSQL_USER: test
+      MYSQL_PASSWORD: test-only-password
+      MYSQL_RANDOM_ROOT_PASSWORD: "yes"
+    tmpfs:
+      - /var/lib/mysql
+    healthcheck:
+      test: ["CMD-SHELL", "mysqladmin ping -h 127.0.0.1 -u$$MYSQL_USER -p$$MYSQL_PASSWORD --silent"]
+      interval: 3s
+      timeout: 3s
+      retries: 30
+  tests:
+    image: nutritreino-api:test
+    build:
+      context: ./api
+      target: test
+    environment:
+      DB_CONNECTION: mysql
+      DB_HOST: database
+      DB_PORT: 3306
+      DB_DATABASE: nutritreino_test
+      DB_USERNAME: test
+      DB_PASSWORD: test-only-password
+    depends_on:
+      database:
+        condition: service_healthy
