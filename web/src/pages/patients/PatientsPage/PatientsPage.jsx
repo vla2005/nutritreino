@@ -7,6 +7,7 @@ import { useToast } from '@/composables/useToast.jsx'
 import { clientErrorToFormErrors, inviteClient, listClients, validateClientPayload } from '@/services/clients.js'
 import { startConversationWithClient } from '@/services/messages.js'
 import { normalizeAvatarUrl } from '@/utils/avatar.js'
+import AvatarImage from '@/shared/components/ui/AvatarImage/AvatarImage.jsx'
 import './PatientsPage.css'
 
 const emptyForm = () => ({ name: '', email: '', phone: '', cpf: '', gender: '', birth_date: '', height: '', weight: '' })
@@ -234,7 +235,7 @@ function PersonCell({ patient, linkTo = '' }) {
   const content = (
     <>
       <span className="people-avatar" aria-hidden="true">
-        {patient.avatar ? <img src={patient.avatar} alt="" /> : patient.initials}
+        <AvatarImage src={patient.avatar} fallback={patient.initials} />
       </span>
       <div>
         <strong>{patient.name}</strong>

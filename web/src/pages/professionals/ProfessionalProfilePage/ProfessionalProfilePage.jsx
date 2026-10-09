@@ -4,6 +4,7 @@ import { useToast } from '@/composables/useToast.jsx'
 import { startConversationWithProfessional } from '@/services/messages.js'
 import { getProfessional } from '@/services/professionals.js'
 import { normalizeAvatarUrl } from '@/utils/avatar.js'
+import AvatarImage from '@/shared/components/ui/AvatarImage/AvatarImage.jsx'
 import '@/features/people/styles/ProfilePage.css'
 import './ProfessionalProfilePage.css'
 
@@ -95,7 +96,7 @@ export default function ProfessionalProfilePage() {
           <section className={`professional-cover is-${professional?.speciality || 'professional'}`}>
             <div className="professional-cover-content">
               <div className="professional-avatar" aria-hidden="true">
-                {avatarUrl ? <img src={avatarUrl} alt="" /> : <span>{initialsText}</span>}
+                <AvatarImage src={avatarUrl} fallback={<span>{initialsText}</span>} />
               </div>
               <div>
                 <span className="professional-eyebrow">{speciality}</span>

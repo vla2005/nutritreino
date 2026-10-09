@@ -1,11 +1,12 @@
 import { normalizeAvatarUrl } from '@/utils/avatar.js'
+import AvatarImage from '@/shared/components/ui/AvatarImage/AvatarImage.jsx'
 
 export default function ChatAvatar({ name = '', avatar = '' }) {
   const avatarUrl = normalizeAvatarUrl(avatar)
 
   return (
     <span className="messages-avatar" aria-hidden="true">
-      {avatarUrl ? <img src={avatarUrl} alt="" /> : initials(name)}
+      <AvatarImage src={avatarUrl} fallback={initials(name)} />
     </span>
   )
 }

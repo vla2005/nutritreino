@@ -1,4 +1,5 @@
 import { normalizeAvatarUrl } from '@/utils/avatar.js'
+import AvatarImage from '@/shared/components/ui/AvatarImage/AvatarImage.jsx'
 
 export default function VideoCallAvatar({ participant }) {
   const avatarUrl = normalizeAvatarUrl(participant?.avatar)
@@ -8,7 +9,7 @@ export default function VideoCallAvatar({ participant }) {
 
   return (
     <span className="video-call-avatar" aria-hidden="true">
-      {avatarUrl ? <img src={avatarUrl} alt="" /> : initials}
+      <AvatarImage src={avatarUrl} fallback={initials} />
     </span>
   )
 }

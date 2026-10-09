@@ -5,6 +5,7 @@ import { useAuth } from '@/composables/useAuth.js'
 import { useToast } from '@/composables/useToast.jsx'
 import { listWorkoutPrograms } from '@/services/workoutPrograms.js'
 import { normalizeAvatarUrl } from '@/utils/avatar.js'
+import AvatarImage from '@/shared/components/ui/AvatarImage/AvatarImage.jsx'
 import './WorkoutProgramsPage.css'
 
 export default function WorkoutProgramsPage() {
@@ -261,11 +262,10 @@ function ProgramTitle({ program }) {
 
 function PersonCell({ person, linkTo = '', compact = false }) {
   const name = person?.name || '-'
-  const [avatarFailed, setAvatarFailed] = useState(null)
   const avatar = normalizeAvatarUrl(person?.avatar)
   const content = (
     <>
-      <span aria-hidden="true">{avatar && avatarFailed !== avatar ? <img src={avatar} alt="" onError={() => setAvatarFailed(avatar)} /> : initials(name)}</span>
+      <span aria-hidden="true"><AvatarImage src={avatar} fallback={initials(name)} /></span>
       <strong>{name}</strong>
     </>
   )

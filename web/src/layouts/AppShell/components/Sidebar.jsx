@@ -4,6 +4,7 @@ import { useAuth } from '@/composables/useAuth.js'
 import { useIcons } from '@/composables/useIcons.jsx'
 import { listConversations } from '@/services/messages.js'
 import { normalizeAvatarUrl } from '@/utils/avatar.js'
+import AvatarImage from '@/shared/components/ui/AvatarImage/AvatarImage.jsx'
 import {
   CaretLeftIcon,
   CaretUpIcon,
@@ -30,7 +31,6 @@ export default function Sidebar({
   const displayName = user?.name || 'Profissional'
   const isCollapsed = collapsed && !mobileOpen
   const avatarUrl = normalizeAvatarUrl(user?.avatar)
-  const [failedAvatar, setFailedAvatar] = useState(null)
 
   useEffect(() => {
     let mounted = true
@@ -118,15 +118,7 @@ export default function Sidebar({
           aria-label={`Abrir menu de ${displayName}`}
         >
           <span className="dashboard-user-avatar" aria-hidden="true">
-            {avatarUrl && failedAvatar !== avatarUrl ? (
-              <img
-                src={avatarUrl}
-                alt=""
-                onError={() => setFailedAvatar(avatarUrl)}
-              />
-            ) : (
-              initials(displayName)
-            )}
+            <AvatarImage src={avatarUrl} fallback={initials(displayName)} />
           </span>
           {!isCollapsed ? (
             <span className="dashboard-user-copy">

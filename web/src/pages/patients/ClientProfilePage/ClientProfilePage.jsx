@@ -5,6 +5,7 @@ import { useToast } from '@/composables/useToast.jsx'
 import { getClient } from '@/services/clients.js'
 import { startConversationWithClient } from '@/services/messages.js'
 import { normalizeAvatarUrl } from '@/utils/avatar.js'
+import AvatarImage from '@/shared/components/ui/AvatarImage/AvatarImage.jsx'
 import '@/features/people/styles/ProfilePage.css'
 import './ClientProfilePage.css'
 
@@ -97,7 +98,7 @@ export default function ClientProfilePage() {
           <section className="professional-cover is-client">
             <div className="professional-cover-content">
               <div className="professional-avatar" aria-hidden="true">
-                {avatarUrl ? <img src={avatarUrl} alt="" /> : <span>{initialsText}</span>}
+                <AvatarImage src={avatarUrl} fallback={<span>{initialsText}</span>} />
               </div>
               <div>
                 <span className="professional-eyebrow">{statusLabel(client?.status)}</span>

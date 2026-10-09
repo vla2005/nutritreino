@@ -1,11 +1,10 @@
 import { normalizeAvatarUrl } from '@/utils/avatar.js'
+import AvatarImage from '@/shared/components/ui/AvatarImage/AvatarImage.jsx'
 
 export default function ProgressAvatar({ person }) {
   const avatarUrl = normalizeAvatarUrl(person?.avatar)
 
-  return avatarUrl
-    ? <img className="progress-access-avatar" src={avatarUrl} alt="" />
-    : <span className="progress-access-avatar">{initials(person?.name || 'PR')}</span>
+  return <AvatarImage src={avatarUrl} className="progress-access-avatar" fallback={<span className="progress-access-avatar">{initials(person?.name || 'PR')}</span>} />
 }
 
 function initials(name = '') {

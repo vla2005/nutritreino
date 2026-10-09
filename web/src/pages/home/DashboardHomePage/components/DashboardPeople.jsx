@@ -1,20 +1,15 @@
 import { CheckCircleIcon, ClipboardTextIcon } from '@phosphor-icons/react'
 import { Link } from 'react-router-dom'
 import { normalizeAvatarUrl } from '@/utils/avatar.js'
-import { useState } from 'react'
+import AvatarImage from '@/shared/components/ui/AvatarImage/AvatarImage.jsx'
 
 export function PatientAvatar({ person, size = 'normal' }) {
   const avatar = normalizeAvatarUrl(person?.avatar)
-  const [failedAvatar, setFailedAvatar] = useState(null)
   const parts = (person?.name || 'Cliente').trim().split(/\s+/)
   const initials = `${parts[0]?.[0] || ''}${parts.length > 1 ? parts.at(-1)[0] : ''}`
   return (
     <span className={`nt-person-avatar is-${size}`} aria-hidden="true">
-      {avatar && failedAvatar !== avatar ? (
-        <img src={avatar} alt="" onError={() => setFailedAvatar(avatar)} />
-      ) : (
-        initials.toUpperCase()
-      )}
+      <AvatarImage src={avatar} fallback={initials.toUpperCase()} />
     </span>
   )
 }

@@ -6,6 +6,7 @@ import ProfileSettingsField from './components/ProfileSettingsField.jsx'
 import { profileToForm } from './utils/profileSettingsForm.js'
 import { updateMyProfile } from '@/services/profile.js'
 import { normalizeAvatarUrl } from '@/utils/avatar.js'
+import AvatarImage from '@/shared/components/ui/AvatarImage/AvatarImage.jsx'
 import './ProfileSettingsPage.css'
 
 export default function ProfileSettingsPage() {
@@ -17,7 +18,6 @@ export default function ProfileSettingsPage() {
   const [form, setForm] = useState(() => profileToForm(user))
   const role = user?.role
   const avatarUrl = avatarPreview || normalizeAvatarUrl(user?.avatar)
-  const [failedAvatar, setFailedAvatar] = useState(null)
   const title = role === 'client' ? 'Meu Perfil' : 'Perfil Profissional'
   const subtitle = role === 'client'
     ? 'Atualize seus dados pessoais e informações físicas.'
@@ -78,7 +78,7 @@ export default function ProfileSettingsPage() {
       <form className="settings-shell" onSubmit={handleSubmit}>
         <section className="settings-avatar-card">
           <div className="settings-avatar-preview" aria-hidden="true">
-            {avatarUrl && failedAvatar !== avatarUrl ? <img src={avatarUrl} alt="" onError={() => setFailedAvatar(avatarUrl)} /> : <span>{initials}</span>}
+            <AvatarImage src={avatarUrl} fallback={<span>{initials}</span>} />
           </div>
           <div>
             <h2>Foto de perfil</h2>
