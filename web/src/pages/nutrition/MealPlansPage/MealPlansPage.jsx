@@ -207,11 +207,11 @@ function PlanTitle({ plan }) {
 
 function PersonCell({ person, linkTo = '', compact = false }) {
   const name = person?.name || '-'
-  const [avatarFailed, setAvatarFailed] = useState(false)
+  const [avatarFailed, setAvatarFailed] = useState(null)
   const avatar = normalizeAvatarUrl(person?.avatar)
   const content = (
     <>
-      <span aria-hidden="true">{avatar && !avatarFailed ? <img src={avatar} alt="" onError={() => setAvatarFailed(true)} /> : initials(name)}</span>
+      <span aria-hidden="true">{avatar && avatarFailed !== avatar ? <img src={avatar} alt="" onError={() => setAvatarFailed(avatar)} /> : initials(name)}</span>
       <strong>{name}</strong>
     </>
   )
