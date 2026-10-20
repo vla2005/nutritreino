@@ -1,3 +1,12 @@
+/* The document canvas must match the shell when content shrinks after closing
+   an accordion. Otherwise the legacy dark body shows below the application. */
+html:has(.dashboard-layout),
+body:has(.dashboard-layout),
+#root:has(.dashboard-layout) {
+  background: var(--nt-canvas);
+  color-scheme: light;
+}
+
 /* The approved clinical palette is scoped to the authenticated shell. */
 .dashboard-layout {
   --layout-bg: var(--nt-canvas);

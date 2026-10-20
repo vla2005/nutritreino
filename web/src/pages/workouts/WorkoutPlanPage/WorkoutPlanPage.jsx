@@ -10,6 +10,8 @@ import '@/features/plans/styles/PlanEditor.css'
 import { listClients } from '@/services/clients.js'
 import { createWorkoutProgram, generateWorkoutProgramSuggestion, getWorkoutProgram, updateWorkoutProgram } from '@/services/workoutPrograms.js'
 import WorkoutDayCard from './components/WorkoutDayCard.jsx'
+import PlanOverview from '@/features/plans/components/PlanOverview/PlanOverview.jsx'
+import { formatCalendarDate } from '@/shared/utils/calendarDate.js'
 import './WorkoutPlanPage.css'
 
 const defaultDays = [
@@ -337,7 +339,7 @@ export default function WorkoutPlanPage() {
         </button>
         <div>
           <h1>{readOnly ? 'Detalhes do Programa de Treino' : isDetailMode ? 'Editar Programa de Treino' : 'Criar Programa de Treino'}</h1>
-          <p>Defina os dias, exercícios e séries para o aluno</p>
+          <p>{readOnly ? 'Confira os exercícios e siga as orientações do seu treinador' : 'Defina os dias, exercícios e séries para o aluno'}</p>
         </div>
       </header>
 
@@ -346,9 +348,14 @@ export default function WorkoutPlanPage() {
           <p className="meal-plans-empty">Carregando treino...</p>
         </section>
       ) : (
-      <div className="plan-page-grid">
+      <div className={`plan-page-grid ${readOnly ? 'is-reading' : ''}`}>
         <div className="plan-main-column">
-          <section className="plan-card">
+          {readOnly ? <PlanOverview title={program.title} notes={program.notes} professional={loadedProgram?.trainer} fields={[
+            { label: 'Objetivo', value: program.goal },
+            { label: 'Nível', value: program.level },
+            { label: 'Período', value: `${formatCalendarDate(program.startDate)} a ${formatCalendarDate(program.endDate)}` },
+            { label: 'Programa', value: `${days.length} ${days.length === 1 ? 'dia' : 'dias'} · ${totalExercises} ${totalExercises === 1 ? 'exercício' : 'exercícios'}` },
+          ]} /> : <section className="plan-card">
             <h2>Informações do Programa</h2>
 
             <div className="plan-form-grid workout-form-grid">
@@ -397,7 +404,7 @@ export default function WorkoutPlanPage() {
                 <textarea value={program.notes} disabled={readOnly} placeholder="Restrições, orientações gerais, aquecimento recomendado..." onChange={(event) => updateProgram('notes', event.target.value)} />
               </PlanField>
             </div>
-          </section>
+          </section>}
 
           {!readOnly ? (
             <section className="plan-card ai-plan-card">
@@ -474,7 +481,7 @@ export default function WorkoutPlanPage() {
           </section>
         </div>
 
-        <aside className="plan-summary-card">
+        {!readOnly ? <aside className="plan-summary-card">
           <h2>Resumo do Programa</h2>
 
           <div className="plan-summary-lines">
@@ -504,7 +511,7 @@ export default function WorkoutPlanPage() {
             <SaveIcon />
             {saving ? 'Salvando...' : uuid ? 'Salvar Alterações' : 'Salvar Programa'}
           </button>
-        </aside>
+        </aside> : null}
       </div>
       )}
     </div>

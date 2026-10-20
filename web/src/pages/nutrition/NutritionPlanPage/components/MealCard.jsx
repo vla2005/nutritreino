@@ -1,4 +1,6 @@
 import PlanField from "@/features/plans/components/PlanField/PlanField.jsx";
+import PlanSectionCard from "@/features/plans/components/PlanSectionCard/PlanSectionCard.jsx";
+import { formatPortion } from "@/features/plans/utils/planPresentation.js";
 
 const unitOptions = [
   { value: "g", label: "gramas" },
@@ -20,46 +22,16 @@ export default function MealCard({
   const foodCount = meal.foods.filter((food) => food.name.trim()).length;
 
   return (
-    <article className="plan-meal-card">
-      <header
-        className="plan-meal-header plan-meal-toggle-header"
-        onClick={() => onUpdate({ expanded: !meal.expanded })}
-      >
-        <div className="plan-meal-title">
-          <span aria-hidden="true">
-            <UtensilsMiniIcon />
-          </span>
-          <div>
-            <h3>{meal.name || "Sem nome"}</h3>
-            <p>
-              {meal.time || "--:--"} <span>-</span> {foodCount} alimento(s)
-            </p>
-          </div>
-        </div>
-        <div className="plan-meal-actions">
-          {!readOnly ? (
-            <button
-              type="button"
-              onClick={(event) => {
-                event.stopPropagation();
-                onRemove();
-              }}
-              aria-label="Remover refeição"
-            >
-              <TrashIcon />
-            </button>
-          ) : null}
-          <span className="plan-chevron-indicator" aria-hidden="true">
-            <ChevronIcon open={meal.expanded} />
-          </span>
-        </div>
-      </header>
-
-      <div
-        className={`plan-meal-body ${meal.expanded ? "is-open" : ""}`}
-        aria-hidden={!meal.expanded}
-      >
-        <div className="plan-meal-body-inner">
+    <PlanSectionCard
+      title={meal.name || "Sem nome"}
+      subtitle={`${meal.time || "Horário livre"} • ${foodCount} ${foodCount === 1 ? "alimento" : "alimentos"}`}
+      icon={<UtensilsMiniIcon />}
+      expanded={meal.expanded}
+      onToggle={() => onUpdate({ expanded: !meal.expanded })}
+      onRemove={readOnly ? undefined : onRemove}
+      removeLabel="Remover refeição"
+    >
+      {readOnly ? <MealReading meal={meal} /> : <>
           <div className="plan-meal-fields">
             <PlanField label="Nome da Refeição">
               <input
@@ -94,9 +66,18 @@ export default function MealCard({
               }
             />
           </PlanField>
-        </div>
-      </div>
-    </article>
+      </>}
+    </PlanSectionCard>
+  );
+}
+
+function MealReading({ meal }) {
+  const foods = meal.foods.filter((food) => food.name.trim());
+  return (
+    <>
+      {foods.length ? <ul className="plan-food-reading" aria-label="Alimentos e porções">{foods.map((food) => <li key={food.id}><strong>{food.name}</strong><span>{formatPortion(food.amount, food.unit)}</span></li>)}</ul> : <p className="plan-reading-empty">Nenhum alimento informado.</p>}
+      {meal.instructions?.trim() ? <div className="plan-reading-notes"><h4>Orientações desta refeição</h4><p>{meal.instructions}</p></div> : null}
+    </>
   );
 }
 
@@ -184,24 +165,6 @@ function TrashIcon() {
         d="M5 7h14M10 11v6M14 11v6M9 7l1-3h4l1 3M7 7l1 14h8l1-14"
         stroke="currentColor"
         strokeWidth="1.7"
-        strokeLinecap="round"
-        strokeLinejoin="round"
-      />
-    </svg>
-  );
-}
-function ChevronIcon({ open }) {
-  return (
-    <svg
-      className={open ? "is-open" : ""}
-      viewBox="0 0 24 24"
-      fill="none"
-      aria-hidden="true"
-    >
-      <path
-        d="m8 10 4 4 4-4"
-        stroke="currentColor"
-        strokeWidth="2"
         strokeLinecap="round"
         strokeLinejoin="round"
       />

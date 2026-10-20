@@ -964,7 +964,7 @@
     }
 
     .progress-modal-measure {
-      grid-template-columns: 34px minmax(0, 1fr) 70px;
+      grid-template-columns: 34px minmax(0, 1fr) minmax(96px, 112px);
       border-bottom: 1px solid #edf1f0;
       gap: 10px;
       min-height: 44px;

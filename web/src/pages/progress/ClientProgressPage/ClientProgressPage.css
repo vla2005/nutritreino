@@ -892,8 +892,44 @@
   align-items: center;
 }
 
-.progress-modal-measure input {
+.progress-modal-measure .progress-measure-value {
   grid-column: 2;
+  display: flex;
+  min-width: 0;
+  align-items: center;
+  gap: 8px;
+  border: 1px solid #d8e0df;
+  border-radius: 8px;
+  padding-right: 12px;
+}
+
+.progress-modal-measure .progress-measure-value:focus-within {
+  outline: 2px solid var(--nt-green);
+  outline-offset: 2px;
+}
+
+.progress-modal-measure .progress-measure-value input {
+  min-width: 0;
+  width: 100%;
+  border: 0;
+  text-align: right;
+  padding: 0 4px 0 10px;
+  font-size: 16px;
+}
+
+.progress-modal-measure .progress-measure-value b {
+  position: static;
+  flex: 0 0 auto;
+  font-weight: 500;
+}
+
+@media (max-width: 767px) {
+  .progress-modal-measure .progress-measure-value {
+    grid-column: 3;
+    border: 0;
+    padding-right: 0;
+    gap: 6px;
+  }
 }
 
 .progress-upload-grid {

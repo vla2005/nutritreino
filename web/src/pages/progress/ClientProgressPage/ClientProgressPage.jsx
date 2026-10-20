@@ -11,6 +11,7 @@ import ProgressPhotos from './components/ProgressPhotos.jsx'
 import WeightChart from './components/WeightChart.jsx'
 import { createProgressRecord, getProgress, getProgressAccess, grantProgressAccess, revokeProgressAccess, saveProgressFeedback } from '@/services/progress.js'
 import './ClientProgressPage.css'
+import { formatCalendarDate as formatDate, relativeCalendarDate as relativeDate, localDateInput } from '@/shared/utils/calendarDate.js'
 
 const measurementItems = [
   { key: 'waist', label: 'Cintura', icon: <RulerIcon size={20} /> },
@@ -344,7 +345,7 @@ function ProgressModal({ clientUuid, progress, onClose, onSaved }) {
   const [saving, setSaving] = useState(false)
   const latestMeasurements = Object.fromEntries((progress?.measurements || []).map((item) => [item.type, item.value || '']))
   const [form, setForm] = useState({
-    record_date: new Date().toISOString().slice(0, 10),
+    record_date: localDateInput(),
     weight: progress?.summary?.current_weight || '',
     target_weight: progress?.summary?.target_weight || '',
     notes: '',
@@ -438,7 +439,7 @@ function ProgressModal({ clientUuid, progress, onClose, onSaved }) {
           <div className="progress-modal-section-head"><h3>Medidas corporais</h3><button type="button" onClick={() => setForm((current) => ({ ...current, measurements: latestMeasurements }))}>Usar ultimas medidas</button></div>
           <div className="progress-modal-grid is-measures">
             {measurementItems.map((item) => (
-              <label key={item.key} className="progress-modal-measure"><i>{item.icon}</i><span>{item.label}</span><input type="number" step="0.1" value={form.measurements[item.key] || ''} onChange={(event) => updateMeasurement(item.key, event.target.value)} /><b>cm</b></label>
+              <label key={item.key} className="progress-modal-measure"><i>{item.icon}</i><span>{item.label}</span><span className="progress-measure-value"><input type="number" step="0.1" aria-label={`${item.label} em centímetros`} value={form.measurements[item.key] || ''} onChange={(event) => updateMeasurement(item.key, event.target.value)} /><b aria-hidden="true">cm</b></span></label>
             ))}
           </div>
         </section>
@@ -765,13 +766,6 @@ function signedNumber(value) {
   return `${number > 0 ? '+' : ''}${formatNumber(number)}`
 }
 
-function formatDate(value) {
-  if (!value) return '-'
-  const date = value instanceof Date ? value : new Date(value)
-  if (Number.isNaN(date.getTime())) return value
-  return date.toLocaleDateString('pt-BR')
-}
-
 function photoLabel(type) {
   return photoItems.find((item) => item.key === type)?.label || type || 'Foto'
 }
@@ -780,14 +774,6 @@ function professionalLabel(value) {
   if (value === 'trainer') return 'Treinador'
   if (value === 'nutritionist') return 'Nutricionista'
   return 'Profissional'
-}
-
-function relativeDate(value) {
-  const date = new Date(value)
-  if (Number.isNaN(date.getTime())) return '-'
-  const today = new Date()
-  if (date.toDateString() === today.toDateString()) return 'Hoje'
-  return formatDate(value)
 }
 
 function firstNameFrom(name = '') {

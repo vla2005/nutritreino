@@ -1,4 +1,5 @@
 import PlanField from "@/features/plans/components/PlanField/PlanField.jsx";
+import PlanSectionCard from "@/features/plans/components/PlanSectionCard/PlanSectionCard.jsx";
 
 export default function WorkoutDayCard({
   day,
@@ -13,46 +14,16 @@ export default function WorkoutDayCard({
     exercise.name.trim(),
   ).length;
   return (
-    <article className="plan-meal-card">
-      <header
-        className="plan-meal-header workout-day-header"
-        onClick={() => onUpdate({ expanded: !day.expanded })}
-      >
-        <div className="plan-meal-title">
-          <span aria-hidden="true">
-            <DumbbellIcon />
-          </span>
-          <div>
-            <h3>{day.name || "Sem nome"}</h3>
-            <p>
-              {day.weekDays || "Dias não definidos"} <span>-</span>{" "}
-              {exerciseCount} exercício(s)
-            </p>
-          </div>
-        </div>
-        <div className="plan-meal-actions">
-          {!readOnly ? (
-            <button
-              type="button"
-              onClick={(event) => {
-                event.stopPropagation();
-                onRemove();
-              }}
-              aria-label="Remover dia de treino"
-            >
-              <TrashIcon />
-            </button>
-          ) : null}
-          <span className="workout-chevron-indicator" aria-hidden="true">
-            <ChevronIcon open={day.expanded} />
-          </span>
-        </div>
-      </header>
-      <div
-        className={`plan-meal-body ${day.expanded ? "is-open" : ""}`}
-        aria-hidden={!day.expanded}
-      >
-        <div className="plan-meal-body-inner">
+    <PlanSectionCard
+      title={day.name || "Sem nome"}
+      subtitle={`${day.weekDays || "Dias não definidos"} • ${exerciseCount} ${exerciseCount === 1 ? "exercício" : "exercícios"}`}
+      icon={<DumbbellIcon />}
+      expanded={day.expanded}
+      onToggle={() => onUpdate({ expanded: !day.expanded })}
+      onRemove={readOnly ? undefined : onRemove}
+      removeLabel="Remover dia de treino"
+    >
+      {readOnly ? <WorkoutReading day={day} /> : <>
           <div className="plan-meal-fields">
             <PlanField label="Nome do Dia">
               <input
@@ -78,10 +49,25 @@ export default function WorkoutDayCard({
             onUpdate={onUpdateExercise}
             onRemove={onRemoveExercise}
           />
-        </div>
-      </div>
-    </article>
+      </>}
+    </PlanSectionCard>
   );
+}
+
+function WorkoutReading({ day }) {
+  const exercises = day.exercises.filter((exercise) => exercise.name.trim());
+  if (!exercises.length) return <p className="plan-reading-empty">Nenhum exercício informado.</p>;
+  return <ol className="plan-exercise-reading" aria-label="Exercícios na ordem do treino">{exercises.map((exercise) => (
+    <li key={exercise.id}>
+      <h4>{exercise.name}</h4>
+      <dl className="plan-exercise-metrics">
+        <div><dt>Séries</dt><dd>{exercise.sets || '—'}</dd></div>
+        <div><dt>Repetições</dt><dd>{exercise.reps || '—'}</dd></div>
+        <div><dt>Descanso</dt><dd>{exercise.rest === '' || exercise.rest == null ? '—' : `${exercise.rest} s`}</dd></div>
+      </dl>
+      {exercise.note?.trim() ? <div className="plan-reading-notes"><h5>Como executar</h5><p>{exercise.note}</p></div> : null}
+    </li>
+  ))}</ol>;
 }
 
 function ExerciseList({ day, readOnly, onAdd, onUpdate, onRemove }) {
@@ -208,24 +194,6 @@ function TrashIcon() {
         d="M5 7h14M10 11v6M14 11v6M9 7l1-3h4l1 3M7 7l1 14h8l1-14"
         stroke="currentColor"
         strokeWidth="1.7"
-        strokeLinecap="round"
-        strokeLinejoin="round"
-      />
-    </svg>
-  );
-}
-function ChevronIcon({ open }) {
-  return (
-    <svg
-      className={open ? "is-open" : ""}
-      viewBox="0 0 24 24"
-      fill="none"
-      aria-hidden="true"
-    >
-      <path
-        d="m8 10 4 4 4-4"
-        stroke="currentColor"
-        strokeWidth="2"
         strokeLinecap="round"
         strokeLinejoin="round"
       />

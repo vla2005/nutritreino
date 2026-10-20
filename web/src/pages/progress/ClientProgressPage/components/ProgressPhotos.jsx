@@ -1,3 +1,5 @@
+import { formatCalendarDate } from '@/shared/utils/calendarDate.js'
+
 export default function ProgressPhotos({ photos, items, onOpen }) {
   const byType = Object.fromEntries(photos.map((photo) => [photo.type, photo]))
 
@@ -6,17 +8,12 @@ export default function ProgressPhotos({ photos, items, onOpen }) {
       {items.map((item) => (
         <button type="button" className="progress-photo-card" key={item.key} onClick={() => onOpen(item.key)}>
           {byType[item.key]?.url ? <img src={byType[item.key].url} alt="" /> : <div className="progress-photo-placeholder"><PhotoIcon /></div>}
-          <span>{formatDate(byType[item.key]?.record_date || new Date())}</span>
+          {byType[item.key]?.record_date ? <span>{formatCalendarDate(byType[item.key].record_date)}</span> : null}
           <strong>{item.label}</strong>
         </button>
       ))}
     </div>
   )
-}
-
-function formatDate(value) {
-  const date = new Date(value)
-  return Number.isNaN(date.getTime()) ? '-' : date.toLocaleDateString('pt-BR')
 }
 
 function PhotoIcon() {

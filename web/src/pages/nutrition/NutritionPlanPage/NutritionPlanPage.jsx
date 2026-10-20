@@ -11,6 +11,8 @@ import PlanField from '@/features/plans/components/PlanField/PlanField.jsx'
 import { ProfessionalSummaryLine, SummaryLine } from '@/features/plans/components/PlanSummaryLine/PlanSummaryLine.jsx'
 import '@/features/plans/styles/PlanEditor.css'
 import MealCard from './components/MealCard.jsx'
+import PlanOverview from '@/features/plans/components/PlanOverview/PlanOverview.jsx'
+import { formatCalendarDate } from '@/shared/utils/calendarDate.js'
 import './NutritionPlanPage.css'
 
 const goalOptions = [
@@ -390,9 +392,14 @@ export default function NutritionPlanPage() {
           <p className="meal-plans-empty">Carregando plano alimentar...</p>
         </section>
       ) : (
-      <div className="plan-page-grid">
+      <div className={`plan-page-grid ${readOnly ? 'is-reading' : ''}`}>
         <div className="plan-main-column">
-          <section className="plan-card">
+          {readOnly ? <PlanOverview title={plan.title} notes={plan.notes} professional={loadedPlan?.nutritionist} fields={[
+            { label: 'Objetivo', value: optionLabel(goalOptions, plan.clientGoal) },
+            { label: 'Tipo de plano', value: optionLabel(planTypeOptions, plan.planType) },
+            { label: 'Período', value: `${formatCalendarDate(plan.startDate)} a ${formatCalendarDate(plan.endDate)}` },
+            { label: 'Refeições', value: `${meals.length} ${meals.length === 1 ? 'refeição' : 'refeições'} · ${totalFoods} ${totalFoods === 1 ? 'alimento' : 'alimentos'}` },
+          ]} /> : <section className="plan-card">
             <h2>Informações do Plano</h2>
 
             <div className="plan-form-grid">
@@ -439,7 +446,7 @@ export default function NutritionPlanPage() {
                 <textarea value={plan.notes} disabled={readOnly} placeholder="Orientações nutricionais gerais, restrições, etc." onChange={(event) => updatePlan('notes', event.target.value)} />
               </PlanField>
             </div>
-          </section>
+          </section>}
 
           {!readOnly ? (
             <section className="plan-card ai-plan-card">
@@ -526,7 +533,7 @@ export default function NutritionPlanPage() {
           </section>
         </div>
 
-        <aside className="plan-summary-card">
+        {!readOnly ? <aside className="plan-summary-card">
           <h2>Resumo do Plano</h2>
 
           <div className="plan-summary-lines">
@@ -558,7 +565,7 @@ export default function NutritionPlanPage() {
               {uuid ? 'Salvar Alterações' : 'Salvar Plano'}
             </button>
           ) : null}
-        </aside>
+        </aside> : null}
       </div>
       )}
 

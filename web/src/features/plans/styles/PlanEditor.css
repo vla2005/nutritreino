@@ -557,7 +557,7 @@
   min-width: 0;
 }
 
-.plan-meal-title > span {
+.plan-meal-title > span:first-child {
   display: grid;
   width: 34px;
   height: 34px;
@@ -676,6 +676,214 @@
   min-height: 0;
   gap: 18px;
   overflow: hidden;
+}
+
+.plan-meal-body[hidden] {
+  display: none;
+}
+
+.plan-section-heading {
+  flex: 1;
+  min-width: 0;
+  margin: 0;
+}
+
+.plan-section-toggle {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  width: 100%;
+  min-height: 44px;
+  gap: 12px;
+  border: 0;
+  border-radius: 8px;
+  background: transparent;
+  color: var(--nt-ink);
+  text-align: left;
+  padding: 0;
+}
+
+.plan-section-toggle:hover {
+  background: var(--nt-green-soft);
+}
+
+.plan-section-toggle:focus-visible,
+.plan-section-remove:focus-visible {
+  outline: 2px solid var(--nt-green);
+  outline-offset: 4px;
+}
+
+.plan-section-copy {
+  display: grid;
+  gap: 5px;
+  min-width: 0;
+}
+
+.plan-section-copy strong {
+  font-size: 16px;
+  font-weight: 600;
+  overflow-wrap: anywhere;
+}
+
+.plan-section-copy > span {
+  color: var(--nt-muted);
+  font-size: 13px;
+  font-weight: 400;
+  line-height: 1.4;
+}
+
+.plan-section-chevron {
+  width: 20px;
+  height: 20px;
+  flex: 0 0 auto;
+  color: var(--nt-muted);
+}
+
+.plan-section-chevron.is-open {
+  transform: rotate(180deg);
+}
+
+.plan-section-remove {
+  display: grid;
+  place-items: center;
+  flex: 0 0 44px;
+  width: 44px;
+  height: 44px;
+  padding: 12px;
+  border: 0;
+  border-radius: 8px;
+  background: transparent;
+  color: var(--nt-muted);
+}
+
+.plan-section-remove:hover {
+  background: #fff1f1;
+  color: #c73535;
+}
+
+:root .plan-page-grid.is-reading {
+  grid-template-columns: minmax(0, 1fr);
+  max-width: 1080px;
+}
+
+.plan-overview > dl {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 16px 24px;
+  margin: 20px 0 0;
+}
+
+.plan-overview dt,
+.plan-exercise-metrics dt {
+  color: var(--nt-muted);
+  font-size: 13px;
+}
+
+.plan-overview dd {
+  margin: 4px 0 0;
+  font-size: 15px;
+  color: var(--nt-ink);
+}
+
+.plan-overview-author {
+  margin: 16px 0 0;
+  color: var(--nt-muted);
+  font-size: 13px;
+}
+
+.plan-overview-author a {
+  color: var(--nt-green-dark);
+  text-decoration: underline;
+  text-underline-offset: 3px;
+}
+
+.plan-food-reading,
+.plan-exercise-reading {
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.plan-food-reading > li {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) auto;
+  align-items: baseline;
+  gap: 12px;
+  padding: 12px 0;
+  border-bottom: 1px solid var(--nt-line);
+}
+
+.plan-food-reading > li:first-child { padding-top: 0; }
+.plan-food-reading > li:last-child { border-bottom: 0; padding-bottom: 0; }
+
+.plan-food-reading strong {
+  color: var(--nt-ink);
+  font-weight: 500;
+  font-size: 16px;
+  overflow-wrap: anywhere;
+}
+
+.plan-food-reading li > span {
+  color: var(--nt-green-dark);
+  font-size: 15px;
+  font-weight: 600;
+  font-variant-numeric: tabular-nums;
+}
+
+.plan-reading-notes {
+  border-top: 1px solid var(--nt-line);
+  padding-top: 14px;
+}
+
+.plan-overview .plan-reading-notes { margin-top: 18px; }
+
+.plan-reading-notes :is(h3, h4, h5) {
+  margin: 0 0 6px;
+  color: var(--nt-ink);
+  font-size: 14px;
+}
+
+.plan-reading-notes p,
+.plan-reading-empty {
+  margin: 0;
+  color: var(--nt-muted);
+  font-size: 14px;
+  line-height: 1.6;
+  white-space: pre-wrap;
+  overflow-wrap: anywhere;
+}
+
+.plan-exercise-reading { counter-reset: exercises; }
+.plan-exercise-reading > li {
+  counter-increment: exercises;
+  padding: 18px 0;
+  border-bottom: 1px solid var(--nt-line);
+}
+.plan-exercise-reading > li:first-child { padding-top: 0; }
+.plan-exercise-reading > li:last-child { border-bottom: 0; padding-bottom: 0; }
+.plan-exercise-reading h4 {
+  margin: 0;
+  color: var(--nt-ink);
+  font-size: 17px;
+  line-height: 1.4;
+  overflow-wrap: anywhere;
+}
+.plan-exercise-reading h4::before {
+  content: counter(exercises) ". ";
+  color: var(--nt-green);
+}
+.plan-exercise-metrics {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 12px;
+  margin: 14px 0;
+}
+.plan-exercise-metrics dd {
+  margin: 4px 0 0;
+  color: var(--nt-ink);
+  font-size: 20px;
+  font-weight: 600;
+  font-variant-numeric: tabular-nums;
 }
 
 .plan-meal-fields {
@@ -1094,4 +1302,29 @@
   .plan-summary-meals strong {
     flex-shrink: 0;
   }
+
+  :root .plan-food-row {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    padding: 12px;
+  }
+
+  .plan-food-row > label:first-child,
+  .plan-food-row > button {
+    grid-column: 1 / -1;
+  }
+
+  :root .workout-exercise-row {
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+    padding: 12px;
+    gap: 12px 8px;
+  }
+
+  .workout-exercise-row > button { grid-column: 1 / -1; }
+  .workout-exercise-row .plan-row-field > span:first-child { font-size: 11px; }
+  .plan-overview > dl { grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 14px; }
+  .plan-overview > dl > div:nth-child(n + 3) { grid-column: 1 / -1; }
+  .plan-section-toggle { min-height: 48px; }
+  .plan-meal-header { gap: 6px; }
+  .plan-exercise-metrics { gap: 8px; }
+  .plan-exercise-metrics dt { font-size: 12px; }
 }
